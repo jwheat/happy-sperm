@@ -570,7 +570,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   completeStage() {
-    this.gameOver = true; // Prevent collisions/damage during transition
+    this.stageComplete = true;
+
+    // Freeze player and make invulnerable
+    this.player.body.setVelocity(0, 0);
+    this.player.invulnerable = true;
+    this.player.body.enable = false;
+
+    // Disable all enemies and their bullets
+    this.enemies.getChildren().forEach(e => {
+      e.setActive(false);
+      e.setVisible(false);
+      if (e.body) e.body.enable = false;
+    });
+    this.enemyBullets.getChildren().forEach(b => {
+      if (b.active) { b.setActive(false); b.setVisible(false); if (b.body) b.body.enable = false; }
+    });
+
     this.score += SCORE_STAGE_CLEAR;
     this.events.emit('scoreChanged', this.score);
     this.events.emit('showMessage', `${STAGES[this.currentStage].name} cleared!`);
@@ -582,9 +598,10 @@ export class GameScene extends Phaser.Scene {
       score: this.score,
       lives: this.lives,
     };
-    this.time.delayedCall(2000, () => {
+    // Use native setTimeout - Phaser's delayedCall can stall
+    setTimeout(() => {
       this.scene.stop('HudScene');
-      this.scene.restart(nextData);
-    });
+      this.scene.start('GameScene', nextData);
+    }, 2000);
   }
 }
