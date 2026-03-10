@@ -44,6 +44,14 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = false;
     this.stageComplete = false;
     this.effectiveScrollSpeed = 0; // updated each frame
+
+    // Stage stats
+    this.stageStats = {
+      enemiesKilled: 0,
+      powerupsCollected: 0,
+      distanceTraveled: 0,
+      stageStartScore: data.score || 0,
+    };
   }
 
   create() {
@@ -216,6 +224,8 @@ export class GameScene extends Phaser.Scene {
     // Real timers — wall-clock speed
     this.realStageTime += delta / 1000;
     this.totalTime += delta / 1000;
+    // Track distance traveled (in pixels scrolled)
+    this.stageStats.distanceTraveled += this.effectiveScrollSpeed * (delta / 1000);
     this.events.emit('progressChanged', this.stageTimer / stage.length);
     this.events.emit('timerChanged', this.realStageTime, this.totalTime);
 
@@ -450,6 +460,7 @@ export class GameScene extends Phaser.Scene {
       // Score
       this.score += enemy.scoreValue;
       this.events.emit('scoreChanged', this.score);
+      this.stageStats.enemiesKilled++;
 
       // Drop powerup
       this.spawnPowerupDrop(enemy.x, enemy.y);
@@ -507,6 +518,7 @@ export class GameScene extends Phaser.Scene {
         player.activatePowerup('speedBoost');
         this.events.emit('showMessage', 'Speed Boost!');
         this.events.emit('powerupChanged', 'speedBoost', true);
+        this.stageStats.powerupsCollected++;
         if (this.cache.audio.exists('sfxPowerup')) {
           this.sound.play('sfxPowerup', { volume: 0.4 });
         }
@@ -515,6 +527,7 @@ export class GameScene extends Phaser.Scene {
         player.activatePowerup('rapidFire');
         this.events.emit('showMessage', 'Rapid Fire!');
         this.events.emit('powerupChanged', 'rapidFire', true);
+        this.stageStats.powerupsCollected++;
         if (this.cache.audio.exists('sfxPowerup')) {
           this.sound.play('sfxPowerup', { volume: 0.4 });
         }
@@ -523,6 +536,7 @@ export class GameScene extends Phaser.Scene {
         player.activatePowerup('shield');
         this.events.emit('showMessage', 'Shield Active!');
         this.events.emit('powerupChanged', 'shield', true);
+        this.stageStats.powerupsCollected++;
         if (this.cache.audio.exists('sfxPowerup')) {
           this.sound.play('sfxPowerup', { volume: 0.4 });
         }
@@ -531,6 +545,7 @@ export class GameScene extends Phaser.Scene {
         player.activatePowerup('tripleShot');
         this.events.emit('showMessage', 'Triple Shot!');
         this.events.emit('powerupChanged', 'tripleShot', true);
+        this.stageStats.powerupsCollected++;
         if (this.cache.audio.exists('sfxPowerup')) {
           this.sound.play('sfxPowerup', { volume: 0.4 });
         }
@@ -604,6 +619,10 @@ export class GameScene extends Phaser.Scene {
       lives: this.lives,
       totalTime: this.totalTime,
       stageTime: this.realStageTime,
+      stats: {
+        ...this.stageStats,
+        stageScore: this.score - this.stageStats.stageStartScore,
+      },
     });
   }
 }

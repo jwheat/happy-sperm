@@ -115,7 +115,7 @@ export class HudScene extends Phaser.Scene {
     const gs = this.gameScene;
 
     this.onScoreChanged = (score) => {
-      this.scoreText.setText(String(score).padStart(6, '0'));
+      this.scoreText.setText(String(score).padStart(8, '0'));
     };
 
     this.onLivesChanged = (lives) => {

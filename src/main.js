@@ -22,4 +22,14 @@ const config = {
   scene: [BootScene, TitleScene, GameScene, HudScene, GameOverScene, StageClearScene],
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// Mute audio when tab loses focus, resume when it returns
+document.addEventListener('visibilitychange', () => {
+  if (!game.sound || !game.sound.context) return;
+  if (document.hidden) {
+    game.sound.context.suspend();
+  } else {
+    game.sound.context.resume();
+  }
+});

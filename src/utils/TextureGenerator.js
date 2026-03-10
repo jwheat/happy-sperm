@@ -224,5 +224,37 @@ export function generateTextures(scene) {
   g.fillCircle(3, 3, 3);
   g.generateTexture('particle', 6, 6);
 
+  // --- Rating star (large, for stage clear screen) ---
+  g.clear();
+  g.fillStyle(0xffdd00, 1);
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? 20 : 8;
+    const angle = (Math.PI / 2 * 3) + (i * Math.PI / 5);
+    const x = 20 + Math.cos(angle) * radius;
+    const y = 20 + Math.sin(angle) * radius;
+    if (i === 0) g.moveTo(x, y);
+    else g.lineTo(x, y);
+  }
+  g.closePath();
+  g.fillPath();
+  g.generateTexture('starFull', 40, 40);
+
+  // Empty star (outline only)
+  g.clear();
+  g.lineStyle(2, 0x666666, 0.8);
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? 20 : 8;
+    const angle = (Math.PI / 2 * 3) + (i * Math.PI / 5);
+    const x = 20 + Math.cos(angle) * radius;
+    const y = 20 + Math.sin(angle) * radius;
+    if (i === 0) g.moveTo(x, y);
+    else g.lineTo(x, y);
+  }
+  g.closePath();
+  g.strokePath();
+  g.generateTexture('starEmpty', 40, 40);
+
   g.destroy();
 }
