@@ -172,6 +172,10 @@ export class GameScene extends Phaser.Scene {
       lives: this.lives,
     });
 
+    // Start game music
+    const music = this.registry.get('music');
+    if (music) music.play('game');
+
     // Egg for final stage
     this.egg = null;
     this.eggSpawned = false;
@@ -182,7 +186,6 @@ export class GameScene extends Phaser.Scene {
     // Clean up on shutdown
     this.events.once('shutdown', () => {
       this.input.keyboard.removeAllListeners();
-      this.events.removeAllListeners();
     });
   }
 
@@ -420,6 +423,9 @@ export class GameScene extends Phaser.Scene {
     if (dead) {
       // Explosion
       this.explosionEmitter.emitParticleAt(enemy.x, enemy.y);
+      if (this.cache.audio.exists('sfxExplosion')) {
+        this.sound.play('sfxExplosion', { volume: 0.4 });
+      }
 
       // Score
       this.score += enemy.scoreValue;
@@ -453,6 +459,9 @@ export class GameScene extends Phaser.Scene {
 
     // Also kill the enemy on collision
     this.explosionEmitter.emitParticleAt(enemy.x, enemy.y);
+    if (this.cache.audio.exists('sfxExplosion')) {
+      this.sound.play('sfxExplosion', { volume: 0.4 });
+    }
     this.score += Math.floor(enemy.scoreValue / 2);
     this.events.emit('scoreChanged', this.score);
     enemy.setActive(false);
@@ -470,26 +479,41 @@ export class GameScene extends Phaser.Scene {
       case 'energy':
         this.score += SCORE_ENERGY;
         this.events.emit('scoreChanged', this.score);
+        if (this.cache.audio.exists('sfxPickup')) {
+          this.sound.play('sfxPickup', { volume: 0.4 });
+        }
         break;
       case 'speedBoost':
         player.activatePowerup('speedBoost');
         this.events.emit('showMessage', 'Speed Boost!');
         this.events.emit('powerupChanged', 'speedBoost', true);
+        if (this.cache.audio.exists('sfxPowerup')) {
+          this.sound.play('sfxPowerup', { volume: 0.4 });
+        }
         break;
       case 'rapidFire':
         player.activatePowerup('rapidFire');
         this.events.emit('showMessage', 'Rapid Fire!');
         this.events.emit('powerupChanged', 'rapidFire', true);
+        if (this.cache.audio.exists('sfxPowerup')) {
+          this.sound.play('sfxPowerup', { volume: 0.4 });
+        }
         break;
       case 'shieldPickup':
         player.activatePowerup('shield');
         this.events.emit('showMessage', 'Shield Active!');
         this.events.emit('powerupChanged', 'shield', true);
+        if (this.cache.audio.exists('sfxPowerup')) {
+          this.sound.play('sfxPowerup', { volume: 0.4 });
+        }
         break;
       case 'tripleShot':
         player.activatePowerup('tripleShot');
         this.events.emit('showMessage', 'Triple Shot!');
         this.events.emit('powerupChanged', 'tripleShot', true);
+        if (this.cache.audio.exists('sfxPowerup')) {
+          this.sound.play('sfxPowerup', { volume: 0.4 });
+        }
         break;
     }
   }
@@ -517,6 +541,9 @@ export class GameScene extends Phaser.Scene {
 
   playerHit() {
     this.explosionEmitter.emitParticleAt(this.player.x, this.player.y);
+    if (this.cache.audio.exists('sfxHit')) {
+      this.sound.play('sfxHit', { volume: 0.5 });
+    }
     this.player.die();
     this.lives--;
     this.events.emit('livesChanged', this.lives);
@@ -543,19 +570,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   completeStage() {
+    this.gameOver = true; // Prevent collisions/damage during transition
     this.score += SCORE_STAGE_CLEAR;
     this.events.emit('scoreChanged', this.score);
     this.events.emit('showMessage', `${STAGES[this.currentStage].name} cleared!`);
 
     this.cameras.main.flash(500, 255, 255, 200);
 
+    const nextData = {
+      stage: this.currentStage + 1,
+      score: this.score,
+      lives: this.lives,
+    };
     this.time.delayedCall(2000, () => {
       this.scene.stop('HudScene');
-      this.scene.start('GameScene', {
-        stage: this.currentStage + 1,
-        score: this.score,
-        lives: this.lives,
-      });
+      this.scene.restart(nextData);
     });
   }
 }

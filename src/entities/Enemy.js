@@ -32,6 +32,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.zigzagTimer = 0;
     this.zigzagDir = Phaser.Math.Between(0, 1) ? 1 : -1;
     this.scrollSpeed = scrollSpeed;
+    this.playedDiveSound = false;
     this.body.enable = true;
     this.setActive(true);
     this.setVisible(true);
@@ -60,6 +61,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.config.chase && playerX !== undefined) {
       const dx = playerX - this.x;
       vx = Math.sign(dx) * speed * 0.8;
+      // Play dive sound once when chaser appears on screen
+      if (!this.playedDiveSound && this.y > 0) {
+        this.playedDiveSound = true;
+        if (this.scene.cache.audio.exists('sfxDive')) {
+          this.scene.sound.play('sfxDive', { volume: 0.3 });
+        }
+      }
     }
 
     this.setVelocity(vx, vy);
@@ -96,6 +104,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     );
     bullet.birth = this.scene.time.now;
     bullet.lifespan = 2500;
+    if (this.scene.cache.audio.exists('sfxEnemyShoot')) {
+      this.scene.sound.play('sfxEnemyShoot', { volume: 0.25 });
+    }
   }
 
   takeDamage(amount = 1) {

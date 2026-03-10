@@ -13,15 +13,15 @@ export class TitleScene extends Phaser.Scene {
     // Title
     this.add.text(GAME_WIDTH / 2, 160, 'HAPPY SPERM', {
       fontSize: '48px',
-      fontFamily: 'monospace',
+      fontFamily: '"Rubik Wet Paint"',
       color: '#ffffff',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(GAME_WIDTH / 2, 220, 'The Ultimate Race', {
+    this.add.text(GAME_WIDTH / 2, 220, 'The Ultimate Fight To Save The Human Race!', {
       fontSize: '18px',
-      fontFamily: 'monospace',
+      fontFamily: 'Bungee',
       color: '#ff88aa',
     }).setOrigin(0.5);
 
@@ -44,7 +44,7 @@ export class TitleScene extends Phaser.Scene {
     // Start prompt
     this.startText = this.add.text(GAME_WIDTH / 2, 560, 'Press ENTER or SPACE to start', {
       fontSize: '16px',
-      fontFamily: 'monospace',
+      fontFamily: 'Bungee',
       color: '#ffff88',
     }).setOrigin(0.5);
 
@@ -66,6 +66,10 @@ export class TitleScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
+
+    // Start title music
+    const music = this.registry.get('music');
+    if (music) music.play('title');
 
     // Input
     this.input.keyboard.on('keydown-ENTER', this.startGame, this);

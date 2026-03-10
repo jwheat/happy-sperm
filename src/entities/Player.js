@@ -82,8 +82,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.spawnBullet(bulletGroup, -PLAYER_BULLET_SPEED * 0.3, -PLAYER_BULLET_SPEED * 0.9);
       // Right angled
       this.spawnBullet(bulletGroup, PLAYER_BULLET_SPEED * 0.3, -PLAYER_BULLET_SPEED * 0.9);
+      if (this.scene.cache.audio.exists('sfxTripleShoot')) {
+        this.scene.sound.play('sfxTripleShoot', { volume: 0.5 });
+      }
     } else {
       this.spawnBullet(bulletGroup, 0, -PLAYER_BULLET_SPEED);
+      if (this.scene.cache.audio.exists('sfxShoot')) {
+        this.scene.sound.play('sfxShoot', { volume: 0.5 });
+      }
     }
   }
 

@@ -16,6 +16,10 @@ export class GameOverScene extends Phaser.Scene {
     this.bg = this.add.tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, 'bgTile')
       .setOrigin(0, 0);
 
+    // Play appropriate music
+    const music = this.registry.get('music');
+    if (music) music.play(this.win ? 'victory' : 'gameOver');
+
     if (this.win) {
       this.add.text(GAME_WIDTH / 2, 140, 'FERTILIZED!', {
         fontSize: '42px',
