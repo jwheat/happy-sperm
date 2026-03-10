@@ -53,31 +53,46 @@ export class HudScene extends Phaser.Scene {
       color: '#44ffff',
     });
 
-    // Listen for events from game scene
+    // Named handler functions so we can remove them later
     const gs = this.gameScene;
 
-    gs.events.on('scoreChanged', (score) => {
+    this.onScoreChanged = (score) => {
       this.scoreText.setText(`SCORE: ${score}`);
-    });
+    };
 
-    gs.events.on('livesChanged', (lives) => {
+    this.onLivesChanged = (lives) => {
       this.livesText.setText(`LIVES: ${lives}`);
       if (lives <= 1) {
         this.livesText.setColor('#ff4444');
       }
-    });
+    };
 
-    gs.events.on('progressChanged', (pct) => {
+    this.onProgressChanged = (pct) => {
       const width = Math.min(pct, 1) * 200;
       this.progressBar.setSize(width, 6);
-    });
+    };
 
-    gs.events.on('showMessage', (msg) => {
+    this.onShowMessage = (msg) => {
       this.showMessage(msg);
-    });
+    };
 
-    gs.events.on('powerupChanged', (type, active) => {
+    this.onPowerupChanged = () => {
       this.updatePowerupDisplay();
+    };
+
+    gs.events.on('scoreChanged', this.onScoreChanged);
+    gs.events.on('livesChanged', this.onLivesChanged);
+    gs.events.on('progressChanged', this.onProgressChanged);
+    gs.events.on('showMessage', this.onShowMessage);
+    gs.events.on('powerupChanged', this.onPowerupChanged);
+
+    // Clean up listeners on GameScene's emitter when HudScene shuts down
+    this.events.once('shutdown', () => {
+      gs.events.off('scoreChanged', this.onScoreChanged);
+      gs.events.off('livesChanged', this.onLivesChanged);
+      gs.events.off('progressChanged', this.onProgressChanged);
+      gs.events.off('showMessage', this.onShowMessage);
+      gs.events.off('powerupChanged', this.onPowerupChanged);
     });
 
     // Stage entrance animation

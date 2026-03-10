@@ -77,7 +77,8 @@ export class TitleScene extends Phaser.Scene {
 
     // Clean up on shutdown
     this.events.once('shutdown', () => {
-      this.input.keyboard.removeAllListeners();
+      this.input.keyboard.off('keydown-ENTER', this.startGame, this);
+      this.input.keyboard.off('keydown-SPACE', this.startGame, this);
     });
   }
 

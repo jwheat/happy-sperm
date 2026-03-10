@@ -5,6 +5,7 @@ import { TitleScene } from './scenes/TitleScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
+import { StageClearScene } from './scenes/StageClearScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -18,7 +19,7 @@ const config = {
       // debug: true,
     },
   },
-  scene: [BootScene, TitleScene, GameScene, HudScene, GameOverScene],
+  scene: [BootScene, TitleScene, GameScene, HudScene, GameOverScene, StageClearScene],
 };
 
 new Phaser.Game(config);

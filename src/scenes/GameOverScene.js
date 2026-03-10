@@ -88,19 +88,18 @@ export class GameOverScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.input.keyboard.on('keydown-ENTER', () => {
+    this.handleEnter = () => {
       if (this.win) {
-        // Play again from beginning
         this.scene.start('GameScene', { stage: 0, score: 0, lives: PLAYER_LIVES });
       } else {
-        // Retry same stage
         this.scene.start('GameScene', { stage: this.finalStage, score: 0, lives: PLAYER_LIVES });
       }
-    });
-
-    this.input.keyboard.on('keydown-SPACE', () => {
+    };
+    this.handleSpace = () => {
       this.scene.start('TitleScene');
-    });
+    };
+    this.input.keyboard.on('keydown-ENTER', this.handleEnter, this);
+    this.input.keyboard.on('keydown-SPACE', this.handleSpace, this);
 
     this.add.text(GAME_WIDTH / 2, 560, 'SPACE for title screen', {
       fontSize: '12px',
@@ -110,7 +109,8 @@ export class GameOverScene extends Phaser.Scene {
 
     // Clean up on shutdown
     this.events.once('shutdown', () => {
-      this.input.keyboard.removeAllListeners();
+      this.input.keyboard.off('keydown-ENTER', this.handleEnter, this);
+      this.input.keyboard.off('keydown-SPACE', this.handleSpace, this);
     });
   }
 

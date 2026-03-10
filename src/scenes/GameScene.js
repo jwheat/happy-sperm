@@ -183,9 +183,9 @@ export class GameScene extends Phaser.Scene {
     this.events.emit('scoreChanged', this.score);
     this.events.emit('livesChanged', this.lives);
 
-    // Clean up on shutdown
+    // Clean up custom key listeners on shutdown
     this.events.once('shutdown', () => {
-      this.input.keyboard.removeAllListeners();
+      this.input.keyboard.removeAllKeys(true);
     });
   }
 
@@ -570,38 +570,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   completeStage() {
-    this.stageComplete = true;
-
-    // Freeze player and make invulnerable
-    this.player.body.setVelocity(0, 0);
-    this.player.invulnerable = true;
-    this.player.body.enable = false;
-
-    // Disable all enemies and their bullets
-    this.enemies.getChildren().forEach(e => {
-      e.setActive(false);
-      e.setVisible(false);
-      if (e.body) e.body.enable = false;
-    });
-    this.enemyBullets.getChildren().forEach(b => {
-      if (b.active) { b.setActive(false); b.setVisible(false); if (b.body) b.body.enable = false; }
-    });
-
     this.score += SCORE_STAGE_CLEAR;
     this.events.emit('scoreChanged', this.score);
     this.events.emit('showMessage', `${STAGES[this.currentStage].name} cleared!`);
-
     this.cameras.main.flash(500, 255, 255, 200);
 
-    const nextData = {
+    this.scene.stop('HudScene');
+    this.scene.start('StageClearScene', {
       stage: this.currentStage + 1,
       score: this.score,
       lives: this.lives,
-    };
-    // Use native setTimeout - Phaser's delayedCall can stall
-    setTimeout(() => {
-      this.scene.stop('HudScene');
-      this.scene.start('GameScene', nextData);
-    }, 2000);
+    });
   }
 }
