@@ -1,0 +1,228 @@
+/**
+ * Procedurally generates all game textures.
+ * Called once during BootScene.
+ */
+export function generateTextures(scene) {
+  const g = scene.make.graphics({ add: false });
+
+  // --- Player sperm ---
+  g.clear();
+  // Head (oval)
+  g.fillStyle(0xffffff, 1);
+  g.fillEllipse(16, 12, 18, 22);
+  // Nucleus
+  g.fillStyle(0xccddff, 0.6);
+  g.fillEllipse(16, 10, 10, 12);
+  // Tail
+  g.lineStyle(2, 0xccccff, 0.9);
+  g.beginPath();
+  g.moveTo(16, 23);
+  g.lineTo(12, 32);
+  g.lineTo(20, 40);
+  g.lineTo(14, 48);
+  g.lineTo(18, 54);
+  g.stroke();
+  g.generateTexture('player', 32, 56);
+
+  // --- Player with shield ---
+  g.clear();
+  g.fillStyle(0x44aaff, 0.25);
+  g.fillCircle(20, 32, 20);
+  g.lineStyle(2, 0x44aaff, 0.6);
+  g.strokeCircle(20, 32, 20);
+  // Head
+  g.fillStyle(0xffffff, 1);
+  g.fillEllipse(20, 26, 18, 22);
+  g.fillStyle(0xccddff, 0.6);
+  g.fillEllipse(20, 24, 10, 12);
+  // Tail
+  g.lineStyle(2, 0xccccff, 0.9);
+  g.beginPath();
+  g.moveTo(20, 37);
+  g.lineTo(16, 46);
+  g.lineTo(24, 54);
+  g.lineTo(18, 60);
+  g.stroke();
+  g.generateTexture('playerShield', 40, 64);
+
+  // --- Player bullet ---
+  g.clear();
+  g.fillStyle(0xffffff, 1);
+  g.fillCircle(4, 4, 4);
+  g.fillStyle(0xeeeeff, 0.6);
+  g.fillCircle(4, 4, 2);
+  g.generateTexture('playerBullet', 8, 8);
+
+  // --- Enemy: White blood cell ---
+  g.clear();
+  g.fillStyle(0xeedd99, 0.8);
+  // Blobby irregular shape
+  g.fillCircle(18, 18, 16);
+  g.fillCircle(12, 12, 10);
+  g.fillCircle(24, 14, 10);
+  g.fillCircle(14, 24, 10);
+  g.fillCircle(22, 24, 10);
+  // Nucleus
+  g.fillStyle(0x886644, 0.7);
+  g.fillEllipse(18, 18, 14, 10);
+  g.generateTexture('whiteBloodCell', 36, 36);
+
+  // --- Enemy: Antibody ---
+  g.clear();
+  g.fillStyle(0xff6666, 0.9);
+  // Y-shaped antibody
+  g.fillRect(8, 12, 4, 16);
+  // Left arm
+  g.fillRect(0, 4, 4, 12);
+  g.fillCircle(2, 4, 4);
+  // Right arm
+  g.fillRect(16, 4, 4, 12);
+  g.fillCircle(18, 4, 4);
+  // Stem
+  g.fillCircle(10, 28, 5);
+  g.generateTexture('antibody', 20, 34);
+
+  // --- Enemy: Rival sperm ---
+  g.clear();
+  g.fillStyle(0xff8888, 1);
+  g.fillEllipse(12, 10, 14, 18);
+  g.fillStyle(0xcc6666, 0.6);
+  g.fillEllipse(12, 8, 8, 10);
+  g.lineStyle(2, 0xff8888, 0.8);
+  g.beginPath();
+  g.moveTo(12, 19);
+  g.lineTo(8, 28);
+  g.lineTo(16, 36);
+  g.lineTo(10, 44);
+  g.stroke();
+  g.generateTexture('rivalSperm', 24, 46);
+
+  // --- Enemy: Mucus blob ---
+  g.clear();
+  g.fillStyle(0x88cc66, 0.7);
+  g.fillCircle(20, 20, 18);
+  g.fillCircle(12, 14, 12);
+  g.fillCircle(28, 16, 12);
+  g.fillCircle(16, 28, 12);
+  g.fillCircle(26, 26, 12);
+  g.fillStyle(0x66aa44, 0.5);
+  g.fillCircle(20, 20, 10);
+  g.generateTexture('mucusBlob', 40, 40);
+
+  // --- Enemy bullet ---
+  g.clear();
+  g.fillStyle(0x88cc66, 1);
+  g.fillCircle(3, 3, 3);
+  g.generateTexture('enemyBullet', 6, 6);
+
+  // --- Collectible: Energy ---
+  g.clear();
+  g.fillStyle(0xffff44, 0.9);
+  // Draw a 5-pointed star manually
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? 10 : 4;
+    const angle = (Math.PI / 2 * 3) + (i * Math.PI / 5);
+    const x = 10 + Math.cos(angle) * radius;
+    const y = 10 + Math.sin(angle) * radius;
+    if (i === 0) g.moveTo(x, y);
+    else g.lineTo(x, y);
+  }
+  g.closePath();
+  g.fillPath();
+  g.fillStyle(0xffffff, 0.5);
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? 6 : 2;
+    const angle = (Math.PI / 2 * 3) + (i * Math.PI / 5);
+    const x = 10 + Math.cos(angle) * radius;
+    const y = 10 + Math.sin(angle) * radius;
+    if (i === 0) g.moveTo(x, y);
+    else g.lineTo(x, y);
+  }
+  g.closePath();
+  g.fillPath();
+  g.generateTexture('energy', 20, 20);
+
+  // --- Collectible: Speed boost ---
+  g.clear();
+  g.fillStyle(0x44ffff, 0.9);
+  // Arrow shape
+  g.fillTriangle(10, 0, 0, 12, 20, 12);
+  g.fillRect(6, 12, 8, 10);
+  g.generateTexture('speedBoost', 20, 22);
+
+  // --- Collectible: Rapid fire ---
+  g.clear();
+  g.fillStyle(0xff4444, 0.9);
+  g.fillCircle(10, 10, 8);
+  g.fillStyle(0xffff44, 1);
+  // Lightning bolt
+  g.fillTriangle(12, 2, 6, 12, 14, 10);
+  g.fillTriangle(8, 10, 14, 18, 6, 12);
+  g.generateTexture('rapidFire', 20, 20);
+
+  // --- Collectible: Shield ---
+  g.clear();
+  g.fillStyle(0x4488ff, 0.9);
+  // Shield shape
+  g.fillRoundedRect(2, 2, 16, 18, 3);
+  g.fillStyle(0x88bbff, 0.6);
+  g.fillRoundedRect(5, 5, 10, 12, 2);
+  g.generateTexture('shieldPickup', 20, 22);
+
+  // --- Collectible: Triple shot ---
+  g.clear();
+  g.fillStyle(0xff88ff, 0.9);
+  g.fillCircle(4, 10, 3);
+  g.fillCircle(10, 4, 3);
+  g.fillCircle(16, 10, 3);
+  g.lineStyle(1, 0xff88ff, 0.6);
+  g.lineBetween(4, 10, 10, 4);
+  g.lineBetween(10, 4, 16, 10);
+  g.generateTexture('tripleShot', 20, 14);
+
+  // --- Wall tissue texture tile ---
+  g.clear();
+  g.fillStyle(0xcc4466, 1);
+  g.fillRect(0, 0, 32, 32);
+  g.fillStyle(0xaa3355, 0.6);
+  g.fillCircle(8, 8, 6);
+  g.fillCircle(24, 24, 6);
+  g.fillStyle(0xdd5577, 0.4);
+  g.fillCircle(20, 8, 4);
+  g.fillCircle(8, 24, 4);
+  g.generateTexture('wallTile', 32, 32);
+
+  // --- Background tile ---
+  g.clear();
+  g.fillStyle(0x330022, 1);
+  g.fillRect(0, 0, 64, 64);
+  g.fillStyle(0x440033, 0.3);
+  g.fillCircle(16, 16, 8);
+  g.fillCircle(48, 48, 8);
+  g.fillStyle(0x220011, 0.4);
+  g.fillCircle(40, 12, 6);
+  g.fillCircle(12, 44, 6);
+  g.generateTexture('bgTile', 64, 64);
+
+  // --- The Egg (boss / goal) ---
+  g.clear();
+  g.fillStyle(0xffffcc, 0.3);
+  g.fillCircle(40, 40, 38);
+  g.fillStyle(0xffffdd, 0.5);
+  g.fillCircle(40, 40, 30);
+  g.fillStyle(0xffffee, 0.7);
+  g.fillCircle(40, 40, 22);
+  g.fillStyle(0xffffff, 0.9);
+  g.fillCircle(40, 40, 14);
+  g.generateTexture('egg', 80, 80);
+
+  // --- Particle ---
+  g.clear();
+  g.fillStyle(0xffffff, 1);
+  g.fillCircle(3, 3, 3);
+  g.generateTexture('particle', 6, 6);
+
+  g.destroy();
+}

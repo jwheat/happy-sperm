@@ -1,0 +1,117 @@
+import { GAME_WIDTH, GAME_HEIGHT, STAGES } from '../config.js';
+
+export class HudScene extends Phaser.Scene {
+  constructor() {
+    super('HudScene');
+  }
+
+  init(data) {
+    this.gameScene = data.gameScene || this.scene.get('GameScene');
+    this.currentStage = data.stage || 0;
+  }
+
+  create() {
+    const textStyle = {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#ffffff',
+    };
+
+    // Score
+    this.scoreText = this.add.text(10, 8, 'SCORE: 0', textStyle);
+
+    // Lives
+    this.livesText = this.add.text(GAME_WIDTH - 10, 8, 'LIVES: 3', textStyle)
+      .setOrigin(1, 0);
+
+    // Stage name
+    const stage = STAGES[this.currentStage] || STAGES[0];
+    this.stageText = this.add.text(GAME_WIDTH / 2, 8, stage.name, {
+      ...textStyle,
+      color: '#ffff88',
+    }).setOrigin(0.5, 0);
+
+    // Progress bar (distance through stage)
+    this.progressBg = this.add.rectangle(GAME_WIDTH / 2, 28, 200, 6, 0x333333)
+      .setOrigin(0.5, 0.5);
+    this.progressBar = this.add.rectangle(
+      GAME_WIDTH / 2 - 100, 28, 0, 6, 0x44ff44
+    ).setOrigin(0, 0.5);
+
+    // Center message
+    this.messageText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.35, '', {
+      fontSize: '24px',
+      fontFamily: 'monospace',
+      color: '#ffff44',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setAlpha(0);
+
+    // Powerup indicators
+    this.powerupText = this.add.text(10, GAME_HEIGHT - 24, '', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#44ffff',
+    });
+
+    // Listen for events from game scene
+    const gs = this.gameScene;
+
+    gs.events.on('scoreChanged', (score) => {
+      this.scoreText.setText(`SCORE: ${score}`);
+    });
+
+    gs.events.on('livesChanged', (lives) => {
+      this.livesText.setText(`LIVES: ${lives}`);
+      if (lives <= 1) {
+        this.livesText.setColor('#ff4444');
+      }
+    });
+
+    gs.events.on('progressChanged', (pct) => {
+      const width = Math.min(pct, 1) * 200;
+      this.progressBar.setSize(width, 6);
+    });
+
+    gs.events.on('showMessage', (msg) => {
+      this.showMessage(msg);
+    });
+
+    gs.events.on('powerupChanged', (type, active) => {
+      this.updatePowerupDisplay();
+    });
+
+    // Stage entrance animation
+    this.showMessage(stage.name);
+  }
+
+  showMessage(text) {
+    this.messageText.setText(text).setAlpha(1);
+    this.tweens.killTweensOf(this.messageText);
+    this.tweens.add({
+      targets: this.messageText,
+      alpha: 0,
+      y: GAME_HEIGHT * 0.3,
+      duration: 2000,
+      ease: 'Power2',
+      onComplete: () => {
+        this.messageText.setY(GAME_HEIGHT * 0.35);
+      },
+    });
+  }
+
+  updatePowerupDisplay() {
+    const gs = this.gameScene;
+    if (!gs.player) return;
+    const active = [];
+    const p = gs.player.powerups;
+    if (p.speedBoost) active.push('SPEED');
+    if (p.rapidFire) active.push('RAPID');
+    if (p.shield) active.push('SHIELD');
+    if (p.tripleShot) active.push('TRIPLE');
+    this.powerupText.setText(active.join(' | '));
+  }
+
+  update() {
+    this.updatePowerupDisplay();
+  }
+}
