@@ -41,8 +41,15 @@ export class TitleScene extends Phaser.Scene {
       color: '#aaaaaa',
     }).setOrigin(0.5);
 
+    // How to play
+    this.add.text(GAME_WIDTH / 2, 530, 'Press H for How to Play', {
+      fontSize: '13px',
+      fontFamily: 'monospace',
+      color: '#888888',
+    }).setOrigin(0.5);
+
     // Start prompt
-    this.startText = this.add.text(GAME_WIDTH / 2, 560, 'Press ENTER or SPACE to start', {
+    this.startText = this.add.text(GAME_WIDTH / 2, 570, 'Press ENTER or SPACE to start', {
       fontSize: '16px',
       fontFamily: 'Bungee',
       color: '#ffff88',
@@ -74,16 +81,22 @@ export class TitleScene extends Phaser.Scene {
     // Input
     this.input.keyboard.on('keydown-ENTER', this.startGame, this);
     this.input.keyboard.on('keydown-SPACE', this.startGame, this);
+    this.input.keyboard.on('keydown-H', this.showInstructions, this);
 
     // Clean up on shutdown
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown-ENTER', this.startGame, this);
       this.input.keyboard.off('keydown-SPACE', this.startGame, this);
+      this.input.keyboard.off('keydown-H', this.showInstructions, this);
     });
   }
 
   startGame() {
     this.scene.start('GameScene', { stage: 0, score: 0, lives: 3 });
+  }
+
+  showInstructions() {
+    this.scene.start('InstructionsScene');
   }
 
   update() {
