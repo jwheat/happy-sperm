@@ -5,6 +5,8 @@ export const GAME_HEIGHT = 720;
 // Scrolling
 export const SCROLL_SPEED = 120;           // pixels/sec base scroll speed
 export const SCROLL_SPEED_INCREMENT = 10;  // increase per level
+export const SCROLL_SPEED_BOOST_MULT = 3.5; // multiplier when speed boost active
+export const SCROLL_POSITION_BONUS = 2.8;  // max multiplier bonus for being at top of screen
 
 // Player
 export const PLAYER_SPEED = 250;
@@ -65,10 +67,10 @@ export const ENERGY_SPAWN_INTERVAL = 3000;
 
 // Levels / stages
 export const STAGES = [
-  { name: 'The Uterus', color: 0xff6688, bgColor: 0x330011, length: 60 },
-  { name: 'The Narrows', color: 0xff8866, bgColor: 0x331100, length: 75 },
-  { name: 'Fallopian Tube', color: 0xffaa88, bgColor: 0x332200, length: 90 },
-  { name: 'The Egg', color: 0xffffcc, bgColor: 0x333300, length: 45 },
+  { name: 'The Uterus', color: 0xff6688, bgColor: 0x330011, length: 180 },
+  { name: 'The Narrows', color: 0xff8866, bgColor: 0x331100, length: 180 },
+  { name: 'Fallopian Tube', color: 0xffaa88, bgColor: 0x332200, length: 270 },
+  { name: 'The Egg', color: 0xffffcc, bgColor: 0x333300, length: 120 },
 ];
 
 // Scoring

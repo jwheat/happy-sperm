@@ -15,7 +15,17 @@ export class BootScene extends Phaser.Scene {
     music.init(this.sound.context);
     this.registry.set('music', music);
 
-    generateSounds(this).then(() => {
+    // Wait for both sounds and fonts before starting
+    const fontsReady = Promise.all([
+      document.fonts.load('16px "Rubik Wet Paint"'),
+      document.fonts.load('16px "Bungee"'),
+      document.fonts.load('16px "Aladin"'),
+    ]).catch(() => {
+      // If fonts fail to load, continue anyway with fallback fonts
+      console.warn('Some Google Fonts failed to load, using fallbacks');
+    });
+
+    Promise.all([generateSounds(this), fontsReady]).then(() => {
       this.scene.start('TitleScene');
     });
   }

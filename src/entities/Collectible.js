@@ -31,8 +31,13 @@ export class Collectible extends Phaser.Physics.Arcade.Sprite {
     return this;
   }
 
-  update() {
+  update(effectiveScrollSpeed) {
     if (!this.active) return;
+
+    // Update velocity based on current effective scroll speed
+    if (effectiveScrollSpeed !== undefined) {
+      this.setVelocityY(effectiveScrollSpeed * 0.5 + 30);
+    }
 
     // Off screen
     if (this.y > GAME_HEIGHT + 30) {

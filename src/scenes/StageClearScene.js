@@ -9,6 +9,8 @@ export class StageClearScene extends Phaser.Scene {
     this.nextStage = data.stage;
     this.score = data.score;
     this.lives = data.lives;
+    this.totalTime = data.totalTime || 0;
+    this.stageTime = data.stageTime || 0;
     this.advanced = false;
   }
 
@@ -46,6 +48,16 @@ export class StageClearScene extends Phaser.Scene {
       color: '#ffffff',
     }).setOrigin(0.5);
 
+    // Show stage time
+    const mins = Math.floor(this.stageTime / 60);
+    const secs = Math.floor(this.stageTime % 60);
+    const ms = Math.floor((this.stageTime % 1) * 100);
+    this.add.text(GAME_WIDTH / 2, 480, `Stage Time: ${mins}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`, {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#44ffff',
+    }).setOrigin(0.5);
+
     const promptText = this.add.text(GAME_WIDTH / 2, 520, 'Press ENTER to continue', {
       fontSize: '16px',
       fontFamily: 'monospace',
@@ -76,6 +88,7 @@ export class StageClearScene extends Phaser.Scene {
       stage: this.nextStage,
       score: this.score,
       lives: this.lives,
+      totalTime: this.totalTime,
     });
   }
 }

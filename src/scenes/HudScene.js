@@ -46,6 +46,13 @@ export class HudScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setAlpha(0);
 
+    // Stage timer
+    this.timerText = this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 24, '0:00', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#aaaaaa',
+    }).setOrigin(1, 0);
+
     // Powerup indicators
     this.powerupText = this.add.text(10, GAME_HEIGHT - 24, '', {
       fontSize: '12px',
@@ -80,11 +87,18 @@ export class HudScene extends Phaser.Scene {
       this.updatePowerupDisplay();
     };
 
+    this.onTimerChanged = (stageTime, totalTime) => {
+      const mins = Math.floor(stageTime / 60);
+      const secs = Math.floor(stageTime % 60);
+      this.timerText.setText(`${mins}:${String(secs).padStart(2, '0')}`);
+    };
+
     gs.events.on('scoreChanged', this.onScoreChanged);
     gs.events.on('livesChanged', this.onLivesChanged);
     gs.events.on('progressChanged', this.onProgressChanged);
     gs.events.on('showMessage', this.onShowMessage);
     gs.events.on('powerupChanged', this.onPowerupChanged);
+    gs.events.on('timerChanged', this.onTimerChanged);
 
     // Clean up listeners on GameScene's emitter when HudScene shuts down
     this.events.once('shutdown', () => {
@@ -93,6 +107,7 @@ export class HudScene extends Phaser.Scene {
       gs.events.off('progressChanged', this.onProgressChanged);
       gs.events.off('showMessage', this.onShowMessage);
       gs.events.off('powerupChanged', this.onPowerupChanged);
+      gs.events.off('timerChanged', this.onTimerChanged);
     });
 
     // Stage entrance animation

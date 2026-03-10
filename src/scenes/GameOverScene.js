@@ -9,6 +9,7 @@ export class GameOverScene extends Phaser.Scene {
     this.win = data.win || false;
     this.finalScore = data.score || 0;
     this.finalStage = data.stage || 0;
+    this.totalTime = data.totalTime || 0;
   }
 
   create() {
@@ -62,10 +63,20 @@ export class GameOverScene extends Phaser.Scene {
     }
 
     // Score
-    this.add.text(GAME_WIDTH / 2, 420, `Final Score: ${this.finalScore}`, {
+    this.add.text(GAME_WIDTH / 2, 410, `Final Score: ${this.finalScore}`, {
       fontSize: '22px',
       fontFamily: 'monospace',
       color: '#ffffff',
+    }).setOrigin(0.5);
+
+    // Total time
+    const mins = Math.floor(this.totalTime / 60);
+    const secs = Math.floor(this.totalTime % 60);
+    const ms = Math.floor((this.totalTime % 1) * 100);
+    this.add.text(GAME_WIDTH / 2, 450, `Time: ${mins}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`, {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#44ffff',
     }).setOrigin(0.5);
 
     // Restart prompt

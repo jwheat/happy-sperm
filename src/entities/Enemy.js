@@ -39,13 +39,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     return this;
   }
 
-  update(time, delta, playerX, playerY, enemyBullets) {
+  update(time, delta, playerX, playerY, enemyBullets, effectiveScrollSpeed) {
     if (!this.active) return;
 
     const speed = this.config.speed;
 
     // Base downward movement (scroll with the world)
-    let vy = speed + (this.scrollSpeed || 0) * 0.3;
+    const currentScroll = effectiveScrollSpeed !== undefined ? effectiveScrollSpeed : (this.scrollSpeed || 0);
+    let vy = speed + currentScroll * 0.3;
     let vx = 0;
 
     // Behavior patterns

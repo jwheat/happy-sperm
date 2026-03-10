@@ -3,6 +3,8 @@ import {
   GAME_HEIGHT,
   SCROLL_SPEED,
   SCROLL_SPEED_INCREMENT,
+  SCROLL_SPEED_BOOST_MULT,
+  SCROLL_POSITION_BONUS,
   PLAYER_LIVES,
   BULLET_POOL_SIZE,
   ENEMY_BULLET_POOL_SIZE,
@@ -37,8 +39,10 @@ export class GameScene extends Phaser.Scene {
     this.score = data.score || 0;
     this.lives = data.lives ?? PLAYER_LIVES;
     this.stageTimer = 0;
+    this.totalTime = data.totalTime || 0; // cumulative run time across stages
     this.gameOver = false;
     this.stageComplete = false;
+    this.effectiveScrollSpeed = 0; // updated each frame
   }
 
   create() {
@@ -194,12 +198,23 @@ export class GameScene extends Phaser.Scene {
 
     const stage = STAGES[this.currentStage] || STAGES[0];
 
-    // Scroll background
-    this.bg.tilePositionY -= this.scrollSpeed * (delta / 1000);
+    // Calculate effective scroll speed
+    // Base speed + position bonus (higher on screen = faster)
+    const playerYRatio = 1 - (this.player.y / GAME_HEIGHT); // 0 at bottom, 1 at top
+    const positionMult = 1 + playerYRatio * SCROLL_POSITION_BONUS;
+    // Speed boost powerup
+    const boostMult = this.player.powerups.speedBoost ? SCROLL_SPEED_BOOST_MULT : 1;
+    this.effectiveScrollSpeed = this.scrollSpeed * positionMult * boostMult;
 
-    // Stage timer
-    this.stageTimer += delta / 1000;
+    // Scroll background
+    this.bg.tilePositionY -= this.effectiveScrollSpeed * (delta / 1000);
+
+    // Stage timer — advances faster with higher scroll speed
+    const speedRatio = this.effectiveScrollSpeed / this.scrollSpeed;
+    this.stageTimer += (delta / 1000) * speedRatio;
+    this.totalTime += delta / 1000;
     this.events.emit('progressChanged', this.stageTimer / stage.length);
+    this.events.emit('timerChanged', this.stageTimer, this.totalTime);
 
     // Update tube walls
     this.updateTubeWalls(delta);
@@ -214,15 +229,17 @@ export class GameScene extends Phaser.Scene {
     this.playerBullets.getChildren().forEach((b) => b.update(time));
     this.enemyBullets.getChildren().forEach((b) => b.update(time));
 
-    // Update enemies
+    // Update enemies with current effective scroll speed
     this.enemies.getChildren().forEach((enemy) => {
       if (enemy.active) {
-        enemy.update(time, delta, this.player.x, this.player.y, this.enemyBullets);
+        enemy.update(time, delta, this.player.x, this.player.y, this.enemyBullets, this.effectiveScrollSpeed);
       }
     });
 
-    // Update collectibles
-    this.collectibles.getChildren().forEach((c) => c.update());
+    // Update collectibles with current effective scroll speed
+    this.collectibles.getChildren().forEach((c) => {
+      if (c.active) c.update(this.effectiveScrollSpeed);
+    });
 
     // Spawn enemies
     this.spawnTimer += delta;
@@ -535,6 +552,7 @@ export class GameScene extends Phaser.Scene {
         win: true,
         score: this.score,
         stage: this.currentStage,
+        totalTime: this.totalTime,
       });
     });
   }
@@ -557,6 +575,7 @@ export class GameScene extends Phaser.Scene {
           win: false,
           score: this.score,
           stage: this.currentStage,
+          totalTime: this.totalTime,
         });
       });
     } else {
@@ -580,6 +599,8 @@ export class GameScene extends Phaser.Scene {
       stage: this.currentStage + 1,
       score: this.score,
       lives: this.lives,
+      totalTime: this.totalTime,
+      stageTime: this.stageTimer,
     });
   }
 }
