@@ -6,6 +6,7 @@ import { GameScene } from './scenes/GameScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 import { StageClearScene } from './scenes/StageClearScene.js';
+import { BonusRoundScene } from './scenes/BonusRoundScene.js';
 import { InstructionsScene } from './scenes/InstructionsScene.js';
 
 const config = {
@@ -20,7 +21,7 @@ const config = {
       // debug: true,
     },
   },
-  scene: [BootScene, TitleScene, InstructionsScene, GameScene, HudScene, GameOverScene, StageClearScene],
+  scene: [BootScene, TitleScene, InstructionsScene, GameScene, HudScene, GameOverScene, StageClearScene, BonusRoundScene],
 };
 
 const game = new Phaser.Game(config);

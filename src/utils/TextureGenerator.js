@@ -256,5 +256,29 @@ export function generateTextures(scene) {
   g.strokePath();
   g.generateTexture('starEmpty', 40, 40);
 
+  // --- Turret (for bonus round) ---
+  g.clear();
+  // Base circle
+  g.fillStyle(0x556677, 1);
+  g.fillCircle(12, 12, 10);
+  // Inner ring
+  g.fillStyle(0x778899, 1);
+  g.fillCircle(12, 12, 6);
+  // Barrel pointing down
+  g.fillStyle(0x445566, 1);
+  g.fillRect(9, 12, 6, 12);
+  // Barrel tip
+  g.fillStyle(0xff4444, 0.8);
+  g.fillCircle(12, 24, 3);
+  g.generateTexture('turret', 24, 28);
+
+  // --- Turret destroyed ---
+  g.clear();
+  g.fillStyle(0x333333, 0.6);
+  g.fillCircle(12, 12, 10);
+  g.fillStyle(0x444444, 0.4);
+  g.fillCircle(12, 12, 5);
+  g.generateTexture('turretDead', 24, 24);
+
   g.destroy();
 }

@@ -177,11 +177,19 @@ export class StageClearScene extends Phaser.Scene {
   advance() {
     if (this.advanced) return;
     this.advanced = true;
-    this.scene.start('GameScene', {
+
+    const data = {
       stage: this.nextStage,
       score: this.score,
       lives: this.lives,
       totalTime: this.totalTime,
-    });
+    };
+
+    // Bonus round between stages (not before the final stage)
+    if (this.nextStage < STAGES.length) {
+      this.scene.start('BonusRoundScene', data);
+    } else {
+      this.scene.start('GameScene', data);
+    }
   }
 }

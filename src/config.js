@@ -82,6 +82,19 @@ export const BULLET_POOL_SIZE = 30;
 export const ENEMY_BULLET_SPEED = 200;
 export const ENEMY_BULLET_POOL_SIZE = 20;
 
+// Bonus Round
+export const BONUS_WAVE_COUNT = 4;
+export const BONUS_WAVE_SPACING = 200;
+export const BONUS_GATE_MIN_WIDTH = 120;
+export const BONUS_GATE_MAX_WIDTH = 180;
+export const BONUS_WALL_HEIGHT = 20;
+export const BONUS_TURRET_HP = 2;
+export const BONUS_TURRET_FIRE_RATE = 1400;
+export const BONUS_TURRET_SCORE = 150;
+export const BONUS_SCORE_MULTIPLIER = 2;
+export const BONUS_COMPLETE_SCORE = 500;
+export const BONUS_SCROLL_SPEED = 100;
+
 // Wall / tube boundaries
 export const TUBE_WALL_THICKNESS = 8;
 export const TUBE_MIN_WIDTH = 200;
