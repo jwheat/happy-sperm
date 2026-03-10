@@ -1,4 +1,30 @@
-import { GAME_WIDTH, GAME_HEIGHT, STAGES } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, STAGES, POWERUP_TYPES } from '../config.js';
+
+const POWERUP_BAR_COLORS = {
+  speedBoost: 0x44ff44,
+  rapidFire:  0xff4444,
+  shield:     0x4488ff,
+  tripleShot: 0xff44ff,
+};
+
+const POWERUP_LABELS = {
+  speedBoost: 'SPD',
+  rapidFire:  'RAP',
+  shield:     'SHD',
+  tripleShot: 'TRI',
+};
+
+const POWERUP_CONFIG_KEYS = {
+  speedBoost: 'SPEED_BOOST',
+  rapidFire:  'RAPID_FIRE',
+  shield:     'SHIELD',
+  tripleShot: 'TRIPLE_SHOT',
+};
+
+const BAR_WIDTH = 100;
+const BAR_HEIGHT = 8;
+const BAR_SPACING = 14;
+const BAR_TOP = 40;
 
 export class HudScene extends Phaser.Scene {
   constructor() {
@@ -11,6 +37,10 @@ export class HudScene extends Phaser.Scene {
   }
 
   create() {
+    // Semi-transparent background panel behind top HUD
+    this.hudBg = this.add.rectangle(0, 0, GAME_WIDTH, 36, 0x000000, 0.45)
+      .setOrigin(0, 0);
+
     const textStyle = {
       fontSize: '14px',
       fontFamily: 'monospace',
@@ -20,9 +50,16 @@ export class HudScene extends Phaser.Scene {
     // Score
     this.scoreText = this.add.text(10, 8, 'SCORE: 0', textStyle);
 
-    // Lives
-    this.livesText = this.add.text(GAME_WIDTH - 10, 8, 'LIVES: 3', textStyle)
-      .setOrigin(1, 0);
+    // Lives (sperm icons)
+    this.livesIcons = [];
+    this.maxLives = 5; // max we'll ever show
+    for (let i = 0; i < this.maxLives; i++) {
+      const icon = this.add.image(
+        GAME_WIDTH - 12 - i * 20, 16, 'player'
+      ).setScale(0.35).setOrigin(1, 0.5);
+      icon.setVisible(false);
+      this.livesIcons.push(icon);
+    }
 
     // Stage name
     const stage = STAGES[this.currentStage] || STAGES[0];
@@ -37,6 +74,27 @@ export class HudScene extends Phaser.Scene {
     this.progressBar = this.add.rectangle(
       GAME_WIDTH / 2 - 100, 28, 0, 6, 0x44ff44
     ).setOrigin(0, 0.5);
+
+    // Powerup timer bars
+    this.powerupBarsBg = this.add.rectangle(0, 34, 140, 4 * BAR_SPACING + 4, 0x000000, 0.45)
+      .setOrigin(0, 0).setAlpha(0);
+    this.powerupBars = {};
+    const barKeys = ['speedBoost', 'rapidFire', 'shield', 'tripleShot'];
+    barKeys.forEach((key, i) => {
+      const y = BAR_TOP + i * BAR_SPACING;
+      const label = this.add.text(8, y, POWERUP_LABELS[key], {
+        fontSize: '9px',
+        fontFamily: 'monospace',
+        color: '#' + POWERUP_BAR_COLORS[key].toString(16).padStart(6, '0'),
+      }).setOrigin(0, 0.5).setAlpha(0);
+
+      const bg = this.add.rectangle(32, y, BAR_WIDTH, BAR_HEIGHT, 0x222222)
+        .setOrigin(0, 0.5).setAlpha(0);
+      const fill = this.add.rectangle(32, y, BAR_WIDTH, BAR_HEIGHT, POWERUP_BAR_COLORS[key])
+        .setOrigin(0, 0.5).setAlpha(0);
+
+      this.powerupBars[key] = { label, bg, fill, active: false };
+    });
 
     // Center message
     this.messageText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.35, '', {
@@ -53,13 +111,6 @@ export class HudScene extends Phaser.Scene {
       color: '#aaaaaa',
     }).setOrigin(1, 0);
 
-    // Powerup indicators
-    this.powerupText = this.add.text(10, GAME_HEIGHT - 24, '', {
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      color: '#44ffff',
-    });
-
     // Named handler functions so we can remove them later
     const gs = this.gameScene;
 
@@ -68,9 +119,14 @@ export class HudScene extends Phaser.Scene {
     };
 
     this.onLivesChanged = (lives) => {
-      this.livesText.setText(`LIVES: ${lives}`);
-      if (lives <= 1) {
-        this.livesText.setColor('#ff4444');
+      for (let i = 0; i < this.maxLives; i++) {
+        this.livesIcons[i].setVisible(i < lives);
+      }
+      // Tint last life red as a warning
+      if (lives === 1) {
+        this.livesIcons[0].setTint(0xff4444);
+      } else {
+        this.livesIcons.forEach((icon) => icon.clearTint());
       }
     };
 
@@ -84,7 +140,7 @@ export class HudScene extends Phaser.Scene {
     };
 
     this.onPowerupChanged = () => {
-      this.updatePowerupDisplay();
+      // handled in update
     };
 
     this.onTimerChanged = (stageTime, totalTime) => {
@@ -110,6 +166,11 @@ export class HudScene extends Phaser.Scene {
       gs.events.off('timerChanged', this.onTimerChanged);
     });
 
+    // Set initial lives display
+    if (gs.lives !== undefined) {
+      this.onLivesChanged(gs.lives);
+    }
+
     // Stage entrance animation
     this.showMessage(stage.name);
   }
@@ -129,19 +190,45 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
-  updatePowerupDisplay() {
+  update() {
     const gs = this.gameScene;
     if (!gs.player) return;
-    const active = [];
-    const p = gs.player.powerups;
-    if (p.speedBoost) active.push('SPEED');
-    if (p.rapidFire) active.push('RAPID');
-    if (p.shield) active.push('SHIELD');
-    if (p.tripleShot) active.push('TRIPLE');
-    this.powerupText.setText(active.join(' | '));
-  }
 
-  update() {
-    this.updatePowerupDisplay();
+    const player = gs.player;
+
+    // Update powerup timer bars
+    for (const key of Object.keys(this.powerupBars)) {
+      const bar = this.powerupBars[key];
+      const isActive = player.powerups[key];
+
+      if (isActive && player.powerupTimers[key]) {
+        const timer = player.powerupTimers[key];
+        const elapsed = timer.getElapsed();
+        const total = timer.delay;
+        const remaining = Math.max(0, 1 - elapsed / total);
+
+        bar.label.setAlpha(1);
+        bar.bg.setAlpha(0.6);
+        bar.fill.setAlpha(0.9);
+        bar.fill.setSize(BAR_WIDTH * remaining, BAR_HEIGHT);
+
+        // Flash when almost expired (last 20%)
+        if (remaining < 0.2) {
+          bar.fill.setAlpha(Math.sin(elapsed * 0.01) * 0.4 + 0.5);
+        }
+
+        bar.active = true;
+      } else if (bar.active) {
+        // Just expired — hide
+        bar.label.setAlpha(0);
+        bar.bg.setAlpha(0);
+        bar.fill.setAlpha(0);
+        bar.active = false;
+      }
+    }
+
+    // Show/hide powerup panel background
+    const anyActive = Object.values(this.powerupBars).some((b) => b.active);
+    this.powerupBarsBg.setAlpha(anyActive ? 1 : 0);
   }
 }
