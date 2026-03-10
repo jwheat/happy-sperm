@@ -133,7 +133,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   activatePowerup(type) {
-    const config = POWERUP_TYPES[type.toUpperCase().replace(/([a-z])([A-Z])/g, '$1_$2')];
+    const config = POWERUP_TYPES[type.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase()];
     if (!config || !config.duration) return;
 
     const key = type;
