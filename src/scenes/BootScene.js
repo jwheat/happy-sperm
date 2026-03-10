@@ -20,6 +20,7 @@ export class BootScene extends Phaser.Scene {
       document.fonts.load('16px "Rubik Wet Paint"'),
       document.fonts.load('16px "Bungee"'),
       document.fonts.load('16px "Aladin"'),
+      document.fonts.load('16px "Audiowide"'),
     ]).catch(() => {
       // If fonts fail to load, continue anyway with fallback fonts
       console.warn('Some Google Fonts failed to load, using fallbacks');

@@ -38,8 +38,9 @@ export class GameScene extends Phaser.Scene {
     this.currentStage = data.stage || 0;
     this.score = data.score || 0;
     this.lives = data.lives ?? PLAYER_LIVES;
-    this.stageTimer = 0;
-    this.totalTime = data.totalTime || 0; // cumulative run time across stages
+    this.stageTimer = 0;        // speed-adjusted timer (drives progress bar / stage completion)
+    this.realStageTime = 0;      // real wall-clock time for current stage
+    this.totalTime = data.totalTime || 0; // cumulative real time across stages
     this.gameOver = false;
     this.stageComplete = false;
     this.effectiveScrollSpeed = 0; // updated each frame
@@ -209,12 +210,14 @@ export class GameScene extends Phaser.Scene {
     // Scroll background
     this.bg.tilePositionY -= this.effectiveScrollSpeed * (delta / 1000);
 
-    // Stage timer — advances faster with higher scroll speed
+    // Stage timer — advances faster with higher scroll speed (drives progress/completion)
     const speedRatio = this.effectiveScrollSpeed / this.scrollSpeed;
     this.stageTimer += (delta / 1000) * speedRatio;
+    // Real timers — wall-clock speed
+    this.realStageTime += delta / 1000;
     this.totalTime += delta / 1000;
     this.events.emit('progressChanged', this.stageTimer / stage.length);
-    this.events.emit('timerChanged', this.stageTimer, this.totalTime);
+    this.events.emit('timerChanged', this.realStageTime, this.totalTime);
 
     // Update tube walls
     this.updateTubeWalls(delta);
@@ -600,7 +603,7 @@ export class GameScene extends Phaser.Scene {
       score: this.score,
       lives: this.lives,
       totalTime: this.totalTime,
-      stageTime: this.stageTimer,
+      stageTime: this.realStageTime,
     });
   }
 }

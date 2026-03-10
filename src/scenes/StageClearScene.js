@@ -31,14 +31,14 @@ export class StageClearScene extends Phaser.Scene {
     if (nextStage) {
       this.add.text(GAME_WIDTH / 2, 320, `Next: ${nextStage.name}`, {
         fontSize: '18px',
-        fontFamily: 'monospace',
+        fontFamily: 'Bungee',
         color: '#ffff88',
       }).setOrigin(0.5);
     }
 
-    this.add.text(GAME_WIDTH / 2, 420, `Score: ${this.score}`, {
+    this.add.text(GAME_WIDTH / 2, 420, `${this.score}`, {
       fontSize: '16px',
-      fontFamily: 'monospace',
+      fontFamily: 'Audiowide',
       color: '#ffffff',
     }).setOrigin(0.5);
 

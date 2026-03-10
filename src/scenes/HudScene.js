@@ -43,12 +43,12 @@ export class HudScene extends Phaser.Scene {
 
     const textStyle = {
       fontSize: '14px',
-      fontFamily: 'monospace',
+      fontFamily: 'Audiowide',
       color: '#ffffff',
     };
 
     // Score
-    this.scoreText = this.add.text(10, 8, 'SCORE: 0', textStyle);
+    this.scoreText = this.add.text(10, 8, '000000', textStyle);
 
     // Lives (sperm icons)
     this.livesIcons = [];
@@ -115,7 +115,7 @@ export class HudScene extends Phaser.Scene {
     const gs = this.gameScene;
 
     this.onScoreChanged = (score) => {
-      this.scoreText.setText(`SCORE: ${score}`);
+      this.scoreText.setText(String(score).padStart(6, '0'));
     };
 
     this.onLivesChanged = (lives) => {
