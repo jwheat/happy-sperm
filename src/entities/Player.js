@@ -6,6 +6,7 @@ import {
   GAME_WIDTH,
   GAME_HEIGHT,
   POWERUP_TYPES,
+  DEBRIS_CLOUD_TYPES,
 } from '../config.js';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -33,6 +34,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     };
     this.powerupTimers = {};
 
+    // Zone effects (set by GameScene overlap checks each frame)
+    this.activeZone = null; // null, 'SLOW', or 'TURBULENT'
+
     // Input
     this.cursors = scene.input.keyboard.createCursorKeys();
     this.wasd = {
@@ -47,23 +51,54 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   handleInput(time, bulletGroup) {
     if (!this.alive) return;
 
-    const speed = this.powerups.speedBoost ? this.speed * 1.6 : this.speed;
+    let speed = this.powerups.speedBoost ? this.speed * 1.6 : this.speed;
+
+    // Apply zone movement modifier (speed boost overrides slow zone)
+    if (this.activeZone) {
+      const isSlowZone = this.activeZone === 'SLOW';
+      if (!(isSlowZone && this.powerups.speedBoost)) {
+        const zoneConfig = DEBRIS_CLOUD_TYPES[this.activeZone];
+        speed *= zoneConfig.moveMult;
+      }
+    }
+
+    // Turbulent zone: use momentum/inertia instead of instant velocity
+    const isTurbulent = this.activeZone === 'TURBULENT';
+    const drag = isTurbulent ? DEBRIS_CLOUD_TYPES.TURBULENT.drag : 0;
 
     // Movement
+    let vx = 0;
+    let vy = 0;
+
     if (this.cursors.left.isDown || this.wasd.left.isDown) {
-      this.body.setVelocityX(-speed);
+      vx = -speed;
     } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
-      this.body.setVelocityX(speed);
-    } else {
-      this.body.setVelocityX(0);
+      vx = speed;
     }
 
     if (this.cursors.up.isDown || this.wasd.up.isDown) {
-      this.body.setVelocityY(-speed);
+      vy = -speed;
     } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
-      this.body.setVelocityY(speed);
+      vy = speed;
+    }
+
+    if (isTurbulent) {
+      // Slippery: blend current velocity toward target with inertia
+      const curVx = this.body.velocity.x;
+      const curVy = this.body.velocity.y;
+      if (vx !== 0 || vy !== 0) {
+        // Input active: accelerate toward target but with momentum
+        this.body.setVelocityX(curVx * drag + vx * (1 - drag));
+        this.body.setVelocityY(curVy * drag + vy * (1 - drag));
+      } else {
+        // No input: slide with friction
+        this.body.setVelocityX(curVx * drag);
+        this.body.setVelocityY(curVy * drag);
+      }
     } else {
-      this.body.setVelocityY(0);
+      // Normal or slow: instant response
+      this.body.setVelocityX(vx);
+      this.body.setVelocityY(vy);
     }
 
     // Firing
@@ -182,6 +217,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   respawn(x, y) {
     this.enableBody(true, x, y, true, true);
     this.alive = true;
+    this.activeZone = null;
     this.setInvulnerable();
   }
 

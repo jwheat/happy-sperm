@@ -96,6 +96,14 @@ export class HudScene extends Phaser.Scene {
       this.powerupBars[key] = { label, bg, fill, active: false };
     });
 
+    // Zone warning indicator
+    this.zoneText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 50, '', {
+      fontSize: '14px',
+      fontFamily: 'Audiowide',
+      color: '#ffaa33',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setAlpha(0);
+
     // Center message
     this.messageText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.35, '', {
       fontSize: '24px',
@@ -149,12 +157,28 @@ export class HudScene extends Phaser.Scene {
       this.timerText.setText(`${mins}:${String(secs).padStart(2, '0')}`);
     };
 
+    this.onZoneChanged = (zone) => {
+      if (zone === 'SLOW') {
+        this.zoneText.setText('~ SLOW ZONE ~').setColor('#ddaa33').setAlpha(1);
+      } else if (zone === 'TURBULENT') {
+        this.zoneText.setText('~ TURBULENCE ~').setColor('#6699ff').setAlpha(1);
+      } else {
+        // Fade out when leaving zone
+        this.tweens.add({
+          targets: this.zoneText,
+          alpha: 0,
+          duration: 300,
+        });
+      }
+    };
+
     gs.events.on('scoreChanged', this.onScoreChanged);
     gs.events.on('livesChanged', this.onLivesChanged);
     gs.events.on('progressChanged', this.onProgressChanged);
     gs.events.on('showMessage', this.onShowMessage);
     gs.events.on('powerupChanged', this.onPowerupChanged);
     gs.events.on('timerChanged', this.onTimerChanged);
+    gs.events.on('zoneChanged', this.onZoneChanged);
 
     // Clean up listeners on GameScene's emitter when HudScene shuts down
     this.events.once('shutdown', () => {
@@ -164,6 +188,7 @@ export class HudScene extends Phaser.Scene {
       gs.events.off('showMessage', this.onShowMessage);
       gs.events.off('powerupChanged', this.onPowerupChanged);
       gs.events.off('timerChanged', this.onTimerChanged);
+      gs.events.off('zoneChanged', this.onZoneChanged);
     });
 
     // Set initial lives display

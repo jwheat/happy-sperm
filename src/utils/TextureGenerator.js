@@ -218,6 +218,50 @@ export function generateTextures(scene) {
   g.fillCircle(40, 40, 14);
   g.generateTexture('egg', 80, 80);
 
+  // --- Debris cloud: Slow zone (thick amber honey) ---
+  g.clear();
+  // Main blob - translucent amber
+  g.fillStyle(0xcc8822, 0.18);
+  g.fillCircle(48, 40, 38);
+  g.fillCircle(36, 50, 30);
+  g.fillCircle(58, 34, 28);
+  // Denser center
+  g.fillStyle(0xddaa33, 0.15);
+  g.fillCircle(46, 42, 24);
+  g.fillCircle(38, 36, 18);
+  // Thick honey streaks
+  g.fillStyle(0xcc9933, 0.12);
+  g.fillCircle(30, 30, 16);
+  g.fillCircle(60, 50, 16);
+  g.fillCircle(50, 56, 14);
+  g.generateTexture('slowCloud', 96, 80);
+
+  // --- Debris cloud: Turbulent zone (crackling blue/white) ---
+  g.clear();
+  // Outer turbulent haze
+  g.fillStyle(0x4488cc, 0.14);
+  g.fillCircle(48, 40, 36);
+  g.fillCircle(34, 48, 28);
+  g.fillCircle(60, 36, 28);
+  // Inner crackling energy
+  g.fillStyle(0x66aaff, 0.12);
+  g.fillCircle(44, 38, 20);
+  g.fillCircle(52, 46, 18);
+  // Lightning crackle lines
+  g.lineStyle(1, 0xaaddff, 0.25);
+  g.beginPath();
+  g.moveTo(24, 30); g.lineTo(38, 36); g.lineTo(30, 44); g.lineTo(46, 50);
+  g.stroke();
+  g.beginPath();
+  g.moveTo(56, 24); g.lineTo(50, 38); g.lineTo(62, 42); g.lineTo(54, 56);
+  g.stroke();
+  // White sparks
+  g.fillStyle(0xffffff, 0.2);
+  g.fillCircle(38, 36, 4);
+  g.fillCircle(54, 44, 3);
+  g.fillCircle(46, 28, 3);
+  g.generateTexture('turbulentCloud', 96, 80);
+
   // --- Particle ---
   g.clear();
   g.fillStyle(0xffffff, 1);

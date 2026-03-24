@@ -22,12 +22,17 @@ import {
   TUBE_MIN_WIDTH,
   TUBE_MAX_WIDTH,
   TUBE_SEGMENT_HEIGHT,
+  DEBRIS_CLOUD_TYPES,
+  DEBRIS_SPAWN_INTERVAL,
+  DEBRIS_MIN_SPAWN_INTERVAL,
+  DEBRIS_SPAWN_DECREASE,
 } from '../config.js';
 
 import { Player } from '../entities/Player.js';
 import { Bullet } from '../entities/Bullet.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Collectible } from '../entities/Collectible.js';
+import { DebrisCloud } from '../entities/DebrisCloud.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -124,6 +129,12 @@ export class GameScene extends Phaser.Scene {
       runChildUpdate: false,
     });
 
+    // Debris clouds group
+    this.debrisClouds = this.physics.add.group({
+      classType: DebrisCloud,
+      runChildUpdate: false,
+    });
+
     // Particle emitter for explosions
     this.explosionEmitter = this.add.particles(0, 0, 'particle', {
       speed: { min: 50, max: 200 },
@@ -173,6 +184,12 @@ export class GameScene extends Phaser.Scene {
       BASE_SPAWN_INTERVAL - this.currentStage * SPAWN_INTERVAL_DECREASE
     );
     this.energyTimer = 0;
+    this.debrisTimer = 0;
+    this.debrisSpawnInterval = Math.max(
+      DEBRIS_MIN_SPAWN_INTERVAL,
+      DEBRIS_SPAWN_INTERVAL - this.currentStage * DEBRIS_SPAWN_DECREASE
+    );
+    this.playerInZone = null; // track current zone for HUD events
 
     // Stage name display
     this.events.emit('stageStart', stage.name);
@@ -207,13 +224,35 @@ export class GameScene extends Phaser.Scene {
 
     const stage = STAGES[this.currentStage] || STAGES[0];
 
+    // Check debris cloud overlaps — reset zone each frame
+    this.player.activeZone = null;
+    this.debrisClouds.getChildren().forEach((cloud) => {
+      if (!cloud.active) return;
+      if (this.physics.overlap(this.player, cloud)) {
+        this.player.activeZone = cloud.cloudType;
+      }
+    });
+
+    // Emit zone change events for HUD
+    if (this.player.activeZone !== this.playerInZone) {
+      this.playerInZone = this.player.activeZone;
+      this.events.emit('zoneChanged', this.playerInZone);
+    }
+
     // Calculate effective scroll speed
     // Base speed + position bonus (higher on screen = faster)
     const playerYRatio = 1 - (this.player.y / GAME_HEIGHT); // 0 at bottom, 1 at top
     const positionMult = 1 + playerYRatio * SCROLL_POSITION_BONUS;
     // Speed boost powerup
     const boostMult = this.player.powerups.speedBoost ? SCROLL_SPEED_BOOST_MULT : 1;
-    this.effectiveScrollSpeed = this.scrollSpeed * positionMult * boostMult;
+
+    // Zone scroll modifier (slow zone reduces scroll; speed boost overrides slow zone)
+    let zoneMult = 1;
+    if (this.player.activeZone && !this.player.powerups.speedBoost) {
+      zoneMult = DEBRIS_CLOUD_TYPES[this.player.activeZone].scrollMult;
+    }
+
+    this.effectiveScrollSpeed = this.scrollSpeed * positionMult * boostMult * zoneMult;
 
     // Scroll background
     this.bg.tilePositionY -= this.effectiveScrollSpeed * (delta / 1000);
@@ -254,6 +293,11 @@ export class GameScene extends Phaser.Scene {
       if (c.active) c.update(this.effectiveScrollSpeed);
     });
 
+    // Update debris clouds
+    this.debrisClouds.getChildren().forEach((cloud) => {
+      if (cloud.active) cloud.update(this.effectiveScrollSpeed);
+    });
+
     // Spawn enemies
     this.spawnTimer += delta;
     if (this.spawnTimer >= this.spawnInterval && !this.stageComplete) {
@@ -266,6 +310,13 @@ export class GameScene extends Phaser.Scene {
     if (this.energyTimer >= ENERGY_SPAWN_INTERVAL) {
       this.spawnCollectible('energy');
       this.energyTimer = 0;
+    }
+
+    // Spawn debris clouds
+    this.debrisTimer += delta;
+    if (this.debrisTimer >= this.debrisSpawnInterval && !this.stageComplete) {
+      this.spawnDebrisCloud();
+      this.debrisTimer = 0;
     }
 
     // Check stage completion
@@ -404,6 +455,29 @@ export class GameScene extends Phaser.Scene {
       collectible = new Collectible(this, x, y, type);
       collectible.spawn(x, y, type, this.scrollSpeed);
       this.collectibles.add(collectible);
+    }
+  }
+
+  spawnDebrisCloud() {
+    // Pick available cloud types based on current stage
+    const available = Object.keys(DEBRIS_CLOUD_TYPES).filter(
+      (key) => this.currentStage >= DEBRIS_CLOUD_TYPES[key].minStage
+    );
+    if (available.length === 0) return;
+
+    const cloudType = Phaser.Utils.Array.GetRandom(available);
+    const x = Phaser.Math.Between(
+      this.currentTubeLeft + 40,
+      this.currentTubeRight - 40
+    );
+
+    let cloud = this.debrisClouds.getFirstDead(false);
+    if (cloud) {
+      cloud.spawn(x, -60, cloudType, this.scrollSpeed);
+    } else {
+      cloud = new DebrisCloud(this, x, -60, cloudType);
+      cloud.spawn(x, -60, cloudType, this.scrollSpeed);
+      this.debrisClouds.add(cloud);
     }
   }
 

@@ -95,6 +95,26 @@ export const BONUS_SCORE_MULTIPLIER = 2;
 export const BONUS_COMPLETE_SCORE = 500;
 export const BONUS_SCROLL_SPEED = 100;
 
+// Debris clouds (environmental hazards)
+export const DEBRIS_CLOUD_TYPES = {
+  SLOW: {
+    key: 'slowCloud',
+    scrollMult: 0.4,       // scroll speed multiplier while inside
+    moveMult: 0.4,         // player movement multiplier while inside
+    minStage: 1,           // first appears in stage 1
+  },
+  TURBULENT: {
+    key: 'turbulentCloud',
+    scrollMult: 1.0,       // no scroll change
+    moveMult: 1.8,         // oversensitive controls
+    drag: 0.92,            // momentum/inertia factor (lower = more sliding)
+    minStage: 2,           // first appears in stage 2
+  },
+};
+export const DEBRIS_SPAWN_INTERVAL = 8000;   // ms between cloud spawns
+export const DEBRIS_MIN_SPAWN_INTERVAL = 5000;
+export const DEBRIS_SPAWN_DECREASE = 500;    // per stage
+
 // Wall / tube boundaries
 export const TUBE_WALL_THICKNESS = 8;
 export const TUBE_MIN_WIDTH = 200;
