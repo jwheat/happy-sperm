@@ -14,6 +14,9 @@ const config = {
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: '#1a0a2e',
+  input: {
+    activePointers: 3,  // support simultaneous joystick + fire button
+  },
   physics: {
     default: 'arcade',
     arcade: {

@@ -115,9 +115,11 @@ export class InstructionsScene extends Phaser.Scene {
       this.scene.start('TitleScene');
     };
     this.input.keyboard.on('keydown', this.goBack, this);
+    this.input.on('pointerdown', this.goBack, this);
 
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown', this.goBack, this);
+      this.input.off('pointerdown', this.goBack, this);
     });
   }
 }

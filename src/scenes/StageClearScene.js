@@ -106,7 +106,7 @@ export class StageClearScene extends Phaser.Scene {
     }
 
     // Continue prompt
-    const promptText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 60, 'Press ENTER to continue', {
+    const promptText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 60, 'Tap or Press ENTER to continue', {
       fontSize: '16px',
       fontFamily: 'monospace',
       color: '#ffff88',
@@ -122,10 +122,12 @@ export class StageClearScene extends Phaser.Scene {
 
     this.input.keyboard.on('keydown-ENTER', this.advance, this);
     this.input.keyboard.on('keydown-SPACE', this.advance, this);
+    this.input.on('pointerdown', this.advance, this);
 
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown-ENTER', this.advance, this);
       this.input.keyboard.off('keydown-SPACE', this.advance, this);
+      this.input.off('pointerdown', this.advance, this);
     });
   }
 

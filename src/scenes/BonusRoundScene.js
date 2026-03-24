@@ -21,6 +21,7 @@ import {
 
 import { Player } from '../entities/Player.js';
 import { Bullet } from '../entities/Bullet.js';
+import { TouchControls } from '../ui/TouchControls.js';
 
 export class BonusRoundScene extends Phaser.Scene {
   constructor() {
@@ -58,6 +59,10 @@ export class BonusRoundScene extends Phaser.Scene {
 
     // Player
     this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80);
+
+    // Touch controls
+    this.touchControls = new TouchControls(this);
+    this.player.touchControls = this.touchControls;
 
     // Bullet pools
     this.playerBullets = this.physics.add.group({
@@ -148,6 +153,7 @@ export class BonusRoundScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown-ESC', this.skipScene, this);
       this.input.keyboard.removeAllKeys(true);
+      if (this.touchControls) this.touchControls.destroy();
     });
 
     if (this.cache.audio.exists('sfxPowerup')) {

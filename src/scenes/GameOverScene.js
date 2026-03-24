@@ -111,6 +111,7 @@ export class GameOverScene extends Phaser.Scene {
     };
     this.input.keyboard.on('keydown-ENTER', this.handleEnter, this);
     this.input.keyboard.on('keydown-SPACE', this.handleSpace, this);
+    this.input.on('pointerdown', this.handleEnter, this);
 
     this.add.text(GAME_WIDTH / 2, 560, 'SPACE for title screen', {
       fontSize: '12px',
@@ -122,6 +123,7 @@ export class GameOverScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown-ENTER', this.handleEnter, this);
       this.input.keyboard.off('keydown-SPACE', this.handleSpace, this);
+      this.input.off('pointerdown', this.handleEnter, this);
     });
   }
 

@@ -46,6 +46,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       right: scene.input.keyboard.addKey('D'),
     };
     this.fireKey = scene.input.keyboard.addKey('SPACE');
+
+    // Touch controls (set externally by scene)
+    this.touchControls = null;
   }
 
   handleInput(time, bulletGroup) {
@@ -82,6 +85,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       vy = speed;
     }
 
+    // Merge touch joystick input (overrides keyboard if active)
+    const tc = this.touchControls;
+    if (tc && tc.enabled && (tc.dirX !== 0 || tc.dirY !== 0)) {
+      vx = tc.dirX * speed;
+      vy = tc.dirY * speed;
+    }
+
     if (isTurbulent) {
       // Slippery: blend current velocity toward target with inertia
       const curVx = this.body.velocity.x;
@@ -103,7 +113,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Firing
     const rate = this.powerups.rapidFire ? POWERUP_TYPES.RAPID_FIRE.fireRate : this.fireRate;
-    if (this.fireKey.isDown && time > this.lastFired + rate) {
+    const touchFiring = tc && tc.enabled && tc.isFiring;
+    if ((this.fireKey.isDown || touchFiring) && time > this.lastFired + rate) {
       this.fire(bulletGroup);
       this.lastFired = time;
     }

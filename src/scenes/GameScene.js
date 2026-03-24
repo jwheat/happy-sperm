@@ -33,6 +33,7 @@ import { Bullet } from '../entities/Bullet.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Collectible } from '../entities/Collectible.js';
 import { DebrisCloud } from '../entities/DebrisCloud.js';
+import { TouchControls } from '../ui/TouchControls.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -88,6 +89,10 @@ export class GameScene extends Phaser.Scene {
 
     // Player
     this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80);
+
+    // Touch controls (only visible on touch devices)
+    this.touchControls = new TouchControls(this);
+    this.player.touchControls = this.touchControls;
 
     // Bullet pools
     this.playerBullets = this.physics.add.group({
@@ -213,9 +218,10 @@ export class GameScene extends Phaser.Scene {
     this.events.emit('scoreChanged', this.score);
     this.events.emit('livesChanged', this.lives);
 
-    // Clean up custom key listeners on shutdown
+    // Clean up on shutdown
     this.events.once('shutdown', () => {
       this.input.keyboard.removeAllKeys(true);
+      if (this.touchControls) this.touchControls.destroy();
     });
   }
 

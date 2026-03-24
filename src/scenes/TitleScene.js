@@ -49,7 +49,7 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Start prompt
-    this.startText = this.add.text(GAME_WIDTH / 2, 570, 'Press ENTER or SPACE to start', {
+    this.startText = this.add.text(GAME_WIDTH / 2, 570, 'Tap or Press ENTER to start', {
       fontSize: '16px',
       fontFamily: 'Bungee',
       color: '#ffff88',
@@ -83,11 +83,15 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', this.startGame, this);
     this.input.keyboard.on('keydown-H', this.showInstructions, this);
 
+    // Touch: tap to start
+    this.input.on('pointerdown', this.startGame, this);
+
     // Clean up on shutdown
     this.events.once('shutdown', () => {
       this.input.keyboard.off('keydown-ENTER', this.startGame, this);
       this.input.keyboard.off('keydown-SPACE', this.startGame, this);
       this.input.keyboard.off('keydown-H', this.showInstructions, this);
+      this.input.off('pointerdown', this.startGame, this);
     });
   }
 
