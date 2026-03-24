@@ -1,0 +1,19 @@
+# System and IDE files
+Thumbs.db
+.DS_Store
+.idea
+.vscode
+
+# Vendors
+node_modules/
+
+# Build
+*.zip
+
+/npm-debug.log
+build/
+out/
+scripts/tsgen/test/bin/
+scripts/tsgen/test/output.txt
+
+plugins/spine*/spine-runtimes/
