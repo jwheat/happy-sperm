@@ -1,48 +1,56 @@
 /**
- * Procedurally generates all game textures.
+ * Procedurally generates all game textures and animations.
  * Called once during BootScene.
  */
+
+const ANIM_FRAMES = 6;  // frames for sperm swim animations
+const ENEMY_ANIM_FRAMES = 4; // frames for enemy animations
+
+// --- Helper: draw a wiggling sperm tail using sine wave ---
+function drawSpermTail(g, startX, startY, phase, color, alpha, segments, segLen, amplitude) {
+  g.lineStyle(2, color, alpha);
+  g.beginPath();
+  g.moveTo(startX, startY);
+  for (let i = 1; i <= segments; i++) {
+    const t = i / segments;
+    // Amplitude grows toward the tip for natural tail motion
+    const amp = amplitude * (0.3 + t * 0.7);
+    const x = startX + Math.sin(phase + t * Math.PI * 2.5) * amp;
+    const y = startY + i * segLen;
+    g.lineTo(x, y);
+  }
+  g.stroke();
+}
+
+// --- Helper: draw sperm head ---
+function drawSpermHead(g, cx, cy, headColor, nucleusColor, headW, headH, nucW, nucH) {
+  g.fillStyle(headColor, 1);
+  g.fillEllipse(cx, cy, headW, headH);
+  g.fillStyle(nucleusColor, 0.6);
+  g.fillEllipse(cx, cy - 2, nucW, nucH);
+}
+
 export function generateTextures(scene) {
   const g = scene.make.graphics({ add: false });
 
-  // --- Player sperm ---
+  // ===================================================
+  // STATIC TEXTURES (used by instructions screen, etc.)
+  // ===================================================
+
+  // --- Player sperm (static fallback) ---
   g.clear();
-  // Head (oval)
-  g.fillStyle(0xffffff, 1);
-  g.fillEllipse(16, 12, 18, 22);
-  // Nucleus
-  g.fillStyle(0xccddff, 0.6);
-  g.fillEllipse(16, 10, 10, 12);
-  // Tail
-  g.lineStyle(2, 0xccccff, 0.9);
-  g.beginPath();
-  g.moveTo(16, 23);
-  g.lineTo(12, 32);
-  g.lineTo(20, 40);
-  g.lineTo(14, 48);
-  g.lineTo(18, 54);
-  g.stroke();
+  drawSpermHead(g, 16, 12, 0xffffff, 0xccddff, 18, 22, 10, 12);
+  drawSpermTail(g, 16, 23, 0, 0xccccff, 0.9, 8, 4, 6);
   g.generateTexture('player', 32, 56);
 
-  // --- Player with shield ---
+  // --- Player with shield (static fallback) ---
   g.clear();
   g.fillStyle(0x44aaff, 0.25);
   g.fillCircle(20, 32, 20);
   g.lineStyle(2, 0x44aaff, 0.6);
   g.strokeCircle(20, 32, 20);
-  // Head
-  g.fillStyle(0xffffff, 1);
-  g.fillEllipse(20, 26, 18, 22);
-  g.fillStyle(0xccddff, 0.6);
-  g.fillEllipse(20, 24, 10, 12);
-  // Tail
-  g.lineStyle(2, 0xccccff, 0.9);
-  g.beginPath();
-  g.moveTo(20, 37);
-  g.lineTo(16, 46);
-  g.lineTo(24, 54);
-  g.lineTo(18, 60);
-  g.stroke();
+  drawSpermHead(g, 20, 26, 0xffffff, 0xccddff, 18, 22, 10, 12);
+  drawSpermTail(g, 20, 37, 0, 0xccccff, 0.9, 6, 4, 5);
   g.generateTexture('playerShield', 40, 64);
 
   // --- Player bullet ---
@@ -53,36 +61,30 @@ export function generateTextures(scene) {
   g.fillCircle(4, 4, 2);
   g.generateTexture('playerBullet', 8, 8);
 
-  // --- Enemy: White blood cell ---
+  // --- Enemy: White blood cell (static) ---
   g.clear();
   g.fillStyle(0xeedd99, 0.8);
-  // Blobby irregular shape
   g.fillCircle(18, 18, 16);
   g.fillCircle(12, 12, 10);
   g.fillCircle(24, 14, 10);
   g.fillCircle(14, 24, 10);
   g.fillCircle(22, 24, 10);
-  // Nucleus
   g.fillStyle(0x886644, 0.7);
   g.fillEllipse(18, 18, 14, 10);
   g.generateTexture('whiteBloodCell', 36, 36);
 
-  // --- Enemy: Antibody ---
+  // --- Enemy: Antibody (static) ---
   g.clear();
   g.fillStyle(0xff6666, 0.9);
-  // Y-shaped antibody
   g.fillRect(8, 12, 4, 16);
-  // Left arm
   g.fillRect(0, 4, 4, 12);
   g.fillCircle(2, 4, 4);
-  // Right arm
   g.fillRect(16, 4, 4, 12);
   g.fillCircle(18, 4, 4);
-  // Stem
   g.fillCircle(10, 28, 5);
   g.generateTexture('antibody', 20, 34);
 
-  // --- Enemy: Rival sperm ---
+  // --- Enemy: Rival sperm (static) ---
   g.clear();
   g.fillStyle(0xff8888, 1);
   g.fillEllipse(12, 10, 14, 18);
@@ -97,7 +99,7 @@ export function generateTextures(scene) {
   g.stroke();
   g.generateTexture('rivalSperm', 24, 46);
 
-  // --- Enemy: Mucus blob ---
+  // --- Enemy: Mucus blob (static) ---
   g.clear();
   g.fillStyle(0x88cc66, 0.7);
   g.fillCircle(20, 20, 18);
@@ -118,7 +120,6 @@ export function generateTextures(scene) {
   // --- Collectible: Energy ---
   g.clear();
   g.fillStyle(0xffff44, 0.9);
-  // Draw a 5-pointed star manually
   g.beginPath();
   for (let i = 0; i < 10; i++) {
     const radius = i % 2 === 0 ? 10 : 4;
@@ -147,7 +148,6 @@ export function generateTextures(scene) {
   // --- Collectible: Speed boost ---
   g.clear();
   g.fillStyle(0x44ffff, 0.9);
-  // Arrow shape
   g.fillTriangle(10, 0, 0, 12, 20, 12);
   g.fillRect(6, 12, 8, 10);
   g.generateTexture('speedBoost', 20, 22);
@@ -157,7 +157,6 @@ export function generateTextures(scene) {
   g.fillStyle(0xff4444, 0.9);
   g.fillCircle(10, 10, 8);
   g.fillStyle(0xffff44, 1);
-  // Lightning bolt
   g.fillTriangle(12, 2, 6, 12, 14, 10);
   g.fillTriangle(8, 10, 14, 18, 6, 12);
   g.generateTexture('rapidFire', 20, 20);
@@ -165,7 +164,6 @@ export function generateTextures(scene) {
   // --- Collectible: Shield ---
   g.clear();
   g.fillStyle(0x4488ff, 0.9);
-  // Shield shape
   g.fillRoundedRect(2, 2, 16, 18, 3);
   g.fillStyle(0x88bbff, 0.6);
   g.fillRoundedRect(5, 5, 10, 12, 2);
@@ -206,7 +204,7 @@ export function generateTextures(scene) {
   g.fillCircle(12, 44, 6);
   g.generateTexture('bgTile', 64, 64);
 
-  // --- The Egg (boss / goal) ---
+  // --- The Egg ---
   g.clear();
   g.fillStyle(0xffffcc, 0.3);
   g.fillCircle(40, 40, 38);
@@ -218,36 +216,29 @@ export function generateTextures(scene) {
   g.fillCircle(40, 40, 14);
   g.generateTexture('egg', 80, 80);
 
-  // --- Debris cloud: Slow zone (thick amber honey) ---
+  // --- Debris clouds (unchanged) ---
   g.clear();
-  // Main blob - translucent amber
   g.fillStyle(0xcc8822, 0.18);
   g.fillCircle(48, 40, 38);
   g.fillCircle(36, 50, 30);
   g.fillCircle(58, 34, 28);
-  // Denser center
   g.fillStyle(0xddaa33, 0.15);
   g.fillCircle(46, 42, 24);
   g.fillCircle(38, 36, 18);
-  // Thick honey streaks
   g.fillStyle(0xcc9933, 0.12);
   g.fillCircle(30, 30, 16);
   g.fillCircle(60, 50, 16);
   g.fillCircle(50, 56, 14);
   g.generateTexture('slowCloud', 96, 80);
 
-  // --- Debris cloud: Turbulent zone (crackling blue/white) ---
   g.clear();
-  // Outer turbulent haze
   g.fillStyle(0x4488cc, 0.14);
   g.fillCircle(48, 40, 36);
   g.fillCircle(34, 48, 28);
   g.fillCircle(60, 36, 28);
-  // Inner crackling energy
   g.fillStyle(0x66aaff, 0.12);
   g.fillCircle(44, 38, 20);
   g.fillCircle(52, 46, 18);
-  // Lightning crackle lines
   g.lineStyle(1, 0xaaddff, 0.25);
   g.beginPath();
   g.moveTo(24, 30); g.lineTo(38, 36); g.lineTo(30, 44); g.lineTo(46, 50);
@@ -255,7 +246,6 @@ export function generateTextures(scene) {
   g.beginPath();
   g.moveTo(56, 24); g.lineTo(50, 38); g.lineTo(62, 42); g.lineTo(54, 56);
   g.stroke();
-  // White sparks
   g.fillStyle(0xffffff, 0.2);
   g.fillCircle(38, 36, 4);
   g.fillCircle(54, 44, 3);
@@ -268,7 +258,7 @@ export function generateTextures(scene) {
   g.fillCircle(3, 3, 3);
   g.generateTexture('particle', 6, 6);
 
-  // --- Rating star (large, for stage clear screen) ---
+  // --- Rating stars ---
   g.clear();
   g.fillStyle(0xffdd00, 1);
   g.beginPath();
@@ -284,7 +274,6 @@ export function generateTextures(scene) {
   g.fillPath();
   g.generateTexture('starFull', 40, 40);
 
-  // Empty star (outline only)
   g.clear();
   g.lineStyle(2, 0x666666, 0.8);
   g.beginPath();
@@ -300,23 +289,18 @@ export function generateTextures(scene) {
   g.strokePath();
   g.generateTexture('starEmpty', 40, 40);
 
-  // --- Turret (for bonus round) ---
+  // --- Turret ---
   g.clear();
-  // Base circle
   g.fillStyle(0x556677, 1);
   g.fillCircle(12, 12, 10);
-  // Inner ring
   g.fillStyle(0x778899, 1);
   g.fillCircle(12, 12, 6);
-  // Barrel pointing down
   g.fillStyle(0x445566, 1);
   g.fillRect(9, 12, 6, 12);
-  // Barrel tip
   g.fillStyle(0xff4444, 0.8);
   g.fillCircle(12, 24, 3);
   g.generateTexture('turret', 24, 28);
 
-  // --- Turret destroyed ---
   g.clear();
   g.fillStyle(0x333333, 0.6);
   g.fillCircle(12, 12, 10);
@@ -324,5 +308,166 @@ export function generateTextures(scene) {
   g.fillCircle(12, 12, 5);
   g.generateTexture('turretDead', 24, 24);
 
+  // ===================================================
+  // ANIMATION FRAME TEXTURES
+  // ===================================================
+
+  // --- Player sperm swim frames ---
+  for (let f = 0; f < ANIM_FRAMES; f++) {
+    const phase = (f / ANIM_FRAMES) * Math.PI * 2;
+    g.clear();
+    drawSpermHead(g, 16, 12, 0xffffff, 0xccddff, 18, 22, 10, 12);
+    drawSpermTail(g, 16, 23, phase, 0xccccff, 0.9, 8, 4, 6);
+    g.generateTexture(`player_${f}`, 32, 56);
+  }
+
+  // --- Player shield swim frames ---
+  for (let f = 0; f < ANIM_FRAMES; f++) {
+    const phase = (f / ANIM_FRAMES) * Math.PI * 2;
+    g.clear();
+    // Shield bubble
+    g.fillStyle(0x44aaff, 0.25);
+    g.fillCircle(20, 32, 20);
+    g.lineStyle(2, 0x44aaff, 0.6);
+    g.strokeCircle(20, 32, 20);
+    drawSpermHead(g, 20, 26, 0xffffff, 0xccddff, 18, 22, 10, 12);
+    drawSpermTail(g, 20, 37, phase, 0xccccff, 0.9, 6, 4, 5);
+    g.generateTexture(`playerShield_${f}`, 40, 64);
+  }
+
+  // --- Rival sperm swim frames ---
+  for (let f = 0; f < ANIM_FRAMES; f++) {
+    const phase = (f / ANIM_FRAMES) * Math.PI * 2;
+    g.clear();
+    drawSpermHead(g, 12, 10, 0xff8888, 0xcc6666, 14, 18, 8, 10);
+    drawSpermTail(g, 12, 19, phase, 0xff8888, 0.8, 7, 3.5, 5);
+    g.generateTexture(`rivalSperm_${f}`, 24, 46);
+  }
+
+  // --- White blood cell pulse frames ---
+  // Pseudopods extend and retract in a cycle
+  for (let f = 0; f < ENEMY_ANIM_FRAMES; f++) {
+    const t = (f / ENEMY_ANIM_FRAMES) * Math.PI * 2;
+    g.clear();
+    g.fillStyle(0xeedd99, 0.8);
+    // Main body
+    g.fillCircle(18, 18, 16);
+    // Pseudopods that pulse outward in sequence
+    const p0 = 10 + Math.sin(t) * 3;
+    const p1 = 10 + Math.sin(t + Math.PI * 0.5) * 3;
+    const p2 = 10 + Math.sin(t + Math.PI) * 3;
+    const p3 = 10 + Math.sin(t + Math.PI * 1.5) * 3;
+    g.fillCircle(12, 12, p0);  // top-left
+    g.fillCircle(24, 14, p1);  // top-right
+    g.fillCircle(14, 24, p2);  // bottom-left
+    g.fillCircle(22, 24, p3);  // bottom-right
+    // Nucleus wobble
+    const nw = 14 + Math.sin(t * 0.5) * 2;
+    const nh = 10 + Math.cos(t * 0.5) * 2;
+    g.fillStyle(0x886644, 0.7);
+    g.fillEllipse(18, 18, nw, nh);
+    g.generateTexture(`whiteBloodCell_${f}`, 36, 36);
+  }
+
+  // --- Antibody wobble frames ---
+  // Arms sway left/right
+  for (let f = 0; f < ENEMY_ANIM_FRAMES; f++) {
+    const t = (f / ENEMY_ANIM_FRAMES) * Math.PI * 2;
+    const sway = Math.sin(t) * 3;
+    g.clear();
+    g.fillStyle(0xff6666, 0.9);
+    // Central stem
+    g.fillRect(8, 12, 4, 16);
+    // Left arm (sways)
+    g.fillRect(0 + sway, 4, 4, 12);
+    g.fillCircle(2 + sway, 4, 4);
+    // Right arm (sways opposite)
+    g.fillRect(16 - sway, 4, 4, 12);
+    g.fillCircle(18 - sway, 4, 4);
+    // Stem base
+    g.fillCircle(10, 28, 5);
+    // Binding tips glow
+    g.fillStyle(0xff9999, 0.6);
+    g.fillCircle(2 + sway, 4, 2);
+    g.fillCircle(18 - sway, 4, 2);
+    g.generateTexture(`antibody_${f}`, 22, 34);
+  }
+
+  // --- Mucus blob pulse frames ---
+  // Sub-blobs shift around and pulse
+  for (let f = 0; f < ENEMY_ANIM_FRAMES; f++) {
+    const t = (f / ENEMY_ANIM_FRAMES) * Math.PI * 2;
+    g.clear();
+    g.fillStyle(0x88cc66, 0.7);
+    // Main body pulses
+    const mainR = 18 + Math.sin(t) * 2;
+    g.fillCircle(20, 20, mainR);
+    // Sub-blobs orbit slightly
+    g.fillCircle(12 + Math.sin(t) * 2, 14 + Math.cos(t) * 1.5, 12);
+    g.fillCircle(28 + Math.cos(t) * 2, 16 + Math.sin(t) * 1.5, 12);
+    g.fillCircle(16 + Math.sin(t + 1) * 2, 28 + Math.cos(t + 1) * 1.5, 12);
+    g.fillCircle(26 + Math.cos(t + 1) * 2, 26 + Math.sin(t + 1) * 1.5, 12);
+    // Inner nucleus
+    g.fillStyle(0x66aa44, 0.5);
+    const innerR = 10 + Math.sin(t + Math.PI) * 2;
+    g.fillCircle(20, 20, innerR);
+    // Drip detail
+    g.fillStyle(0x99dd77, 0.3);
+    g.fillCircle(20, 20 + mainR - 4, 4);
+    g.generateTexture(`mucusBlob_${f}`, 40, 40);
+  }
+
   g.destroy();
+
+  // ===================================================
+  // CREATE ANIMATIONS
+  // ===================================================
+
+  // Player swim
+  scene.anims.create({
+    key: 'playerSwim',
+    frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `player_${i}` })),
+    frameRate: 10,
+    repeat: -1,
+  });
+
+  // Player shield swim
+  scene.anims.create({
+    key: 'playerShieldSwim',
+    frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `playerShield_${i}` })),
+    frameRate: 10,
+    repeat: -1,
+  });
+
+  // Rival sperm swim
+  scene.anims.create({
+    key: 'rivalSpermSwim',
+    frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `rivalSperm_${i}` })),
+    frameRate: 10,
+    repeat: -1,
+  });
+
+  // White blood cell pulse
+  scene.anims.create({
+    key: 'wbcPulse',
+    frames: Array.from({ length: ENEMY_ANIM_FRAMES }, (_, i) => ({ key: `whiteBloodCell_${i}` })),
+    frameRate: 4,
+    repeat: -1,
+  });
+
+  // Antibody wobble
+  scene.anims.create({
+    key: 'antibodyWobble',
+    frames: Array.from({ length: ENEMY_ANIM_FRAMES }, (_, i) => ({ key: `antibody_${i}` })),
+    frameRate: 6,
+    repeat: -1,
+  });
+
+  // Mucus blob pulse
+  scene.anims.create({
+    key: 'mucusBlobPulse',
+    frames: Array.from({ length: ENEMY_ANIM_FRAMES }, (_, i) => ({ key: `mucusBlob_${i}` })),
+    frameRate: 3,
+    repeat: -1,
+  });
 }

@@ -49,6 +49,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Touch controls (set externally by scene)
     this.touchControls = null;
+
+    // Start swim animation
+    this.play('playerSwim');
   }
 
   handleInput(time, bulletGroup) {
@@ -190,9 +193,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.powerupTimers[key].remove();
     }
 
-    // Update texture if shield
+    // Switch to shield animation
     if (key === 'shield') {
-      this.setTexture('playerShield');
+      this.play('playerShieldSwim');
       this.body.setSize(16, 22);
       this.body.setOffset(12, 4);
     }
@@ -209,7 +212,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       delete this.powerupTimers[key];
     }
     if (key === 'shield') {
-      this.setTexture('player');
+      this.play('playerSwim');
       this.body.setSize(16, 22);
       this.body.setOffset(8, 0);
     }
@@ -229,6 +232,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.enableBody(true, x, y, true, true);
     this.alive = true;
     this.activeZone = null;
+    this.play('playerSwim');
     this.setInvulnerable();
   }
 

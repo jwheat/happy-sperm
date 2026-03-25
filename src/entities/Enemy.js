@@ -1,5 +1,13 @@
 import { ENEMY_TYPES, ENEMY_BULLET_SPEED, GAME_WIDTH } from '../config.js';
 
+// Map enemy type keys to their animation names
+const ENEMY_ANIMS = {
+  whiteBloodCell: 'wbcPulse',
+  antibody: 'antibodyWobble',
+  rivalSperm: 'rivalSpermSwim',
+  mucusBlob: 'mucusBlobPulse',
+};
+
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, typeKey) {
     const config = Object.values(ENEMY_TYPES).find((t) => t.key === typeKey);
@@ -18,6 +26,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setActive(true);
     this.setVisible(true);
+
+    // Play animation
+    const animKey = ENEMY_ANIMS[typeKey];
+    if (animKey) this.play(animKey);
   }
 
   init(x, y, typeKey, scrollSpeed) {
@@ -26,7 +38,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.hp = config.hp;
     this.scoreValue = config.score;
     this.enemyType = typeKey;
-    this.setTexture(typeKey);
     this.setPosition(x, y);
     this.lastFired = 0;
     this.zigzagTimer = 0;
@@ -36,6 +47,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.body.enable = true;
     this.setActive(true);
     this.setVisible(true);
+
+    // Play animation (also sets correct texture)
+    const animKey = ENEMY_ANIMS[typeKey];
+    if (animKey) {
+      this.play(animKey);
+    } else {
+      this.setTexture(typeKey);
+    }
     return this;
   }
 
