@@ -57,37 +57,46 @@ export class TitleScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
+    // Character Name outline??
+    // this.charNameOutline = this.add.text(GAME_WIDTH / 2 - 5, charY + 55, '', {
+    //   fontSize: '35px',
+    //   fontFamily: 'Bungee',
+    //   color: '#ffffff',
+    // }).setOrigin(0.5);
+
     // Character name
-    this.charName = this.add.text(GAME_WIDTH / 2, charY + 65, '', {
-      fontSize: '22px',
+    this.charName = this.add.text(GAME_WIDTH / 2, charY + 55, '', {
+      fontSize: '40px',
       fontFamily: 'Bungee',
       color: '#ffff88',
     }).setOrigin(0.5);
 
+
+
     // Special ability name
     this.charSpecial = this.add.text(GAME_WIDTH / 2, charY + 90, '', {
-      fontSize: '13px',
+      fontSize: '16px',
       fontFamily: 'monospace',
       color: '#88ffaa',
     }).setOrigin(0.5);
 
     // Description
     this.charDesc = this.add.text(GAME_WIDTH / 2, charY + 110, '', {
-      fontSize: '12px',
+      fontSize: '14px',
       fontFamily: 'monospace',
       color: '#ffffff',
     }).setOrigin(0.5);
 
     // Quote
-    this.charQuote = this.add.text(GAME_WIDTH / 2, charY + 265, '', {
+    this.charQuote = this.add.text(GAME_WIDTH / 2, charY + 290, '', {
       fontSize: '18px',
       fontFamily: 'monospace',
       fontStyle: 'italic',
       color: '#dff307',
     }).setOrigin(0.5);
 
-        // Quote Attribution
-    this.charQuoteAttribution = this.add.text(GAME_WIDTH / 2, charY + 290, '- Sir Swimsworth', {
+    // Quote Attribution
+    this.charQuoteAttribution = this.add.text(115, charY + 265, 'Sir Swimsworth says:', {
       fontSize: '16px',
       fontFamily: 'monospace',
       fontStyle: 'Bold',
@@ -105,7 +114,7 @@ export class TitleScene extends Phaser.Scene {
 
     // Draw stat labels
     statLabels.forEach((label, i) => {
-      this.add.text(GAME_WIDTH / 3 - 95, statsY + i * 22, label, {
+      this.add.text(GAME_WIDTH / 3 - 30, statsY + i * 22, label, {
         fontSize: '12px',
         fontFamily: 'monospace',
         color: '#eeeeee',
@@ -140,7 +149,7 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Start prompt
-    this.startText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 35, 'Tap or Press ENTER to start', {
+    this.startText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 35, 'Press ENTER to start', {
       fontSize: '16px',
       fontFamily: 'Bungee',
       color: '#ffff88',
@@ -234,6 +243,8 @@ export class TitleScene extends Phaser.Scene {
 
     // Update text
     this.charName.setText(ch.name);
+    // this.charNameOutline.setText(ch.name);
+    this.charName.setColor(`#${ch.colors.ribbon.toString(16).padStart(6, '0')}`);
     this.charSpecial.setText(`${ch.special}`);
     this.charDesc.setText(ch.description);
     this.charQuote.setText(ch.quote);
@@ -246,7 +257,7 @@ export class TitleScene extends Phaser.Scene {
     const g = this.statBarGraphics;
     g.clear();
 
-    const barX = GAME_WIDTH / 2 - 55;
+    const barX = GAME_WIDTH / 2;
     const barW = 18;
     const barH = 14;
     const gap = 4;
