@@ -21,7 +21,7 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(GAME_WIDTH / 2, 130, 'The Ultimate Fight To Save The Human Race!', {
+    this.add.text(GAME_WIDTH / 2, 130, 'Swim.  Fight.  Fertilize.', {
       fontSize: '18px',
       fontFamily: 'Bungee',
       color: '#ff88aa',
@@ -75,12 +75,28 @@ export class TitleScene extends Phaser.Scene {
     this.charDesc = this.add.text(GAME_WIDTH / 2, charY + 110, '', {
       fontSize: '12px',
       fontFamily: 'monospace',
-      color: '#aaaaaa',
+      color: '#ffffff',
+    }).setOrigin(0.5);
+
+    // Quote
+    this.charQuote = this.add.text(GAME_WIDTH / 2, charY + 265, '', {
+      fontSize: '18px',
+      fontFamily: 'monospace',
+      fontStyle: 'italic',
+      color: '#dff307',
+    }).setOrigin(0.5);
+
+        // Quote Attribution
+    this.charQuoteAttribution = this.add.text(GAME_WIDTH / 2, charY + 290, '- Sir Swimsworth', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      fontStyle: 'Bold',
+      color: '#ffffff',
     }).setOrigin(0.5);
 
     // Stat bars
     const statsY = charY + 140;
-    const statLabels = ['SPD', 'ACC', 'HP', 'FPW', 'SPL'];
+    const statLabels = ['Speed', 'Acceleration', 'Health', 'Fire Power', 'Special'];
     const statKeys = ['speed', 'accel', 'health', 'firepower', 'special'];
     this.statBarGraphics = this.add.graphics();
     this.statLabels = statLabels;
@@ -89,19 +105,19 @@ export class TitleScene extends Phaser.Scene {
 
     // Draw stat labels
     statLabels.forEach((label, i) => {
-      this.add.text(GAME_WIDTH / 2 - 95, statsY + i * 22, label, {
+      this.add.text(GAME_WIDTH / 3 - 95, statsY + i * 22, label, {
         fontSize: '12px',
         fontFamily: 'monospace',
-        color: '#888888',
+        color: '#eeeeee',
       }).setOrigin(0, 0.5);
     });
 
-    // "Select" hint
-    this.add.text(GAME_WIDTH / 2, statsY + 5 * 22 + 10, '\u25C0 \u25B6  to select character', {
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      color: '#666666',
-    }).setOrigin(0.5);
+    // // "Select" hint
+    // this.add.text(GAME_WIDTH / 2, statsY + 5 * 22 + 10, '\u25C0 \u25B6  to select character', {
+    //   fontSize: '12px',
+    //   fontFamily: 'monospace',
+    //   color: '#666666',
+    // }).setOrigin(0.5);
 
     // Instructions
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 120, 'Arrow Keys / WASD to move', {
@@ -220,6 +236,7 @@ export class TitleScene extends Phaser.Scene {
     this.charName.setText(ch.name);
     this.charSpecial.setText(`${ch.special}`);
     this.charDesc.setText(ch.description);
+    this.charQuote.setText(ch.quote);
 
     // Update stat bars
     this.drawStatBars(ch);

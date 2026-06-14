@@ -30,6 +30,17 @@ function drawSpermHead(g, cx, cy, headColor, nucleusColor, headW, headH, nucW, n
   g.fillEllipse(cx, cy - 2, nucW, nucH);
 }
 
+// --- Helper: draw bowtie at the neck ---
+function drawBowtie(g, cx, cy, ribbonColor) {
+  g.fillStyle(ribbonColor, 0.9);
+  // Left triangle
+  g.fillTriangle(cx, cy, cx - 5, cy - 3, cx - 5, cy + 3);
+  // Right triangle
+  g.fillTriangle(cx, cy, cx + 5, cy - 3, cx + 5, cy + 3);
+  // Center knot
+  g.fillCircle(cx, cy, 1.5);
+}
+
 import { CHARACTERS, CHARACTER_IDS } from '../config.js';
 
 export function generateTextures(scene) {
@@ -42,11 +53,12 @@ export function generateTextures(scene) {
   // --- Per-character player sperm textures ---
   CHARACTER_IDS.forEach((id) => {
     const ch = CHARACTERS[id];
-    const { head, nucleus, tail } = ch.colors;
+    const { head, nucleus, ribbon, tail } = ch.colors;
 
     // Static fallback
     g.clear();
     drawSpermHead(g, 16, 12, head, nucleus, 18, 22, 10, 12);
+    drawBowtie(g, 16, 22, ribbon);
     drawSpermTail(g, 16, 23, 0, tail, 0.9, 8, 4, 6);
     g.generateTexture(`player_${id}`, 32, 56);
 
@@ -57,6 +69,7 @@ export function generateTextures(scene) {
     g.lineStyle(2, 0x44aaff, 0.6);
     g.strokeCircle(20, 32, 20);
     drawSpermHead(g, 20, 26, head, nucleus, 18, 22, 10, 12);
+    drawBowtie(g, 20, 36, ribbon);
     drawSpermTail(g, 20, 37, 0, tail, 0.9, 6, 4, 5);
     g.generateTexture(`playerShield_${id}`, 40, 64);
   });
@@ -329,12 +342,13 @@ export function generateTextures(scene) {
   // --- Per-character swim frames ---
   CHARACTER_IDS.forEach((id) => {
     const ch = CHARACTERS[id];
-    const { head, nucleus, tail } = ch.colors;
+    const { head, nucleus, ribbon, tail } = ch.colors;
 
     for (let f = 0; f < ANIM_FRAMES; f++) {
       const phase = (f / ANIM_FRAMES) * Math.PI * 2;
       g.clear();
       drawSpermHead(g, 16, 12, head, nucleus, 18, 22, 10, 12);
+      drawBowtie(g, 16, 22, ribbon);
       drawSpermTail(g, 16, 23, phase, tail, 0.9, 8, 4, 6);
       g.generateTexture(`player_${id}_${f}`, 32, 56);
     }
@@ -347,6 +361,7 @@ export function generateTextures(scene) {
       g.lineStyle(2, 0x44aaff, 0.6);
       g.strokeCircle(20, 32, 20);
       drawSpermHead(g, 20, 26, head, nucleus, 18, 22, 10, 12);
+      drawBowtie(g, 20, 36, ribbon);
       drawSpermTail(g, 20, 37, phase, tail, 0.9, 6, 4, 5);
       g.generateTexture(`playerShield_${id}_${f}`, 40, 64);
     }
