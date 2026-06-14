@@ -29,6 +29,7 @@ export class TitleScene extends Phaser.Scene {
 
     // --- Character selection area ---
     const charY = 240;
+    this.charCenterX = GAME_WIDTH / 2;
 
     // Left arrow
     this.leftArrow = this.add.text(GAME_WIDTH / 2 - 80, charY, '\u25C0', {
@@ -57,19 +58,21 @@ export class TitleScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    // Character Name outline??
-    // this.charNameOutline = this.add.text(GAME_WIDTH / 2 - 5, charY + 55, '', {
-    //   fontSize: '35px',
-    //   fontFamily: 'Bungee',
-    //   color: '#ffffff',
-    // }).setOrigin(0.5);
-
     // Character name
-    this.charName = this.add.text(GAME_WIDTH / 2, charY + 55, '', {
+    this.charName = this.add.text(GAME_WIDTH / 2, charY + 45, '', {
       fontSize: '40px',
       fontFamily: 'Bungee',
       color: '#ffff88',
-    }).setOrigin(0.5);
+      stroke: '#000000',
+      strokeThickness: 4,
+      shadow: {
+        offsetX: -10,
+        offsetY: -10,
+        color: '#000000',
+        blur: 0,
+        fill: true,
+      },
+    }).setOrigin(0.5).setScale(1.1);
 
 
 
@@ -230,10 +233,10 @@ export class TitleScene extends Phaser.Scene {
 
   cycleCharacter(dir) {
     this.selectedIndex = (this.selectedIndex + dir + CHARACTER_IDS.length) % CHARACTER_IDS.length;
-    this.updateCharacterDisplay();
+    this.updateCharacterDisplay(dir);
   }
 
-  updateCharacterDisplay() {
+  updateCharacterDisplay(dir = 0) {
     const id = CHARACTER_IDS[this.selectedIndex];
     const ch = CHARACTERS[id];
 
@@ -241,13 +244,44 @@ export class TitleScene extends Phaser.Scene {
     this.charSprite.setTexture(`player_${id}`);
     this.charSprite.play(`playerSwim_${id}`);
 
+    // Slide sprite in from the direction of the arrow pressed
+    if (dir !== 0) {
+      if (this.charSlideTween) this.charSlideTween.stop();
+      const slideOffset = 300;
+      this.charSprite.x = this.charCenterX - dir * slideOffset;
+      this.charSprite.setAlpha(0.3);
+      this.charSlideTween = this.tweens.add({
+        targets: this.charSprite,
+        x: this.charCenterX,
+        alpha: 1,
+        duration: 2000,
+        ease: 'Back.easeOut',
+      });
+      if (this.cache.audio.exists('sfxSwoosh')) {
+        this.sound.play('sfxSwoosh', { volume: 0.4 });
+      }
+    }
+
     // Update text
+    const ribbonCSS = `#${ch.colors.ribbon.toString(16).padStart(6, '0')}`;
     this.charName.setText(ch.name);
-    // this.charNameOutline.setText(ch.name);
-    this.charName.setColor(`#${ch.colors.ribbon.toString(16).padStart(6, '0')}`);
+    this.charName.setColor(ribbonCSS);
+    this.charName.setShadow(0, -1, '#ffffff', 0, true, false); // top-edge highlight
+    this.charName.setShadow(0, 0, ribbonCSS, 6, false, true);  // color glow (stroke shadow)
     this.charSpecial.setText(`${ch.special}`);
     this.charDesc.setText(ch.description);
     this.charQuote.setText(ch.quote);
+
+    // Bounce animation on character change
+    if (this.charNameBounce) this.charNameBounce.stop();
+    this.charName.setScale(0.9);
+    this.charNameBounce = this.tweens.add({
+      targets: this.charName,
+      scaleX: 1.1,
+      scaleY: 1.1,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
 
     // Update stat bars
     this.drawStatBars(ch);

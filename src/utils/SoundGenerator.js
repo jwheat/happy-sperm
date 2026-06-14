@@ -127,6 +127,24 @@ export function generateSounds(scene) {
     })
   );
 
+  // --- UI swoosh: breathy sweep ---
+  promises.push(
+    renderBuffer(audioCtx.sampleRate, 0.2, (buf) => {
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        const t = i / buf.sampleRate;
+        const noise = Math.random() * 2 - 1;
+        // Bandpass-ish: mix noise with a rising sine sweep
+        const sweep = Math.sin(2 * Math.PI * (300 + t * 4000) * t);
+        // Envelope: quick attack, smooth fade
+        const env = Math.sin(Math.PI * t / 0.2) * (1 - t / 0.2);
+        data[i] = (noise * 0.6 + sweep * 0.4) * env * 0.18;
+      }
+    }).then((buffer) => {
+      scene.cache.audio.add('sfxSwoosh', buffer);
+    })
+  );
+
   // --- Enemy shoot: lower "bwop" ---
   promises.push(
     renderBuffer(audioCtx.sampleRate, 0.1, (buf) => {
