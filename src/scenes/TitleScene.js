@@ -7,13 +7,14 @@ export class TitleScene extends Phaser.Scene {
 
   create() {
     this.selectedIndex = 0;
+    this.charCenterX = GAME_WIDTH / 2;
 
     // Scrolling background
     this.bg = this.add.tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, 'bgTile')
       .setOrigin(0, 0);
 
     // Title
-    this.add.text(GAME_WIDTH / 2, 80, 'HAPPY SPERM', {
+    this.add.text(GAME_WIDTH / 2, 55, 'HAPPY SPERM', {
       fontSize: '48px',
       fontFamily: '"Rubik Wet Paint"',
       color: '#ffffff',
@@ -21,144 +22,49 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(GAME_WIDTH / 2, 130, 'Swim.  Fight.  Fertilize.', {
+    this.add.text(GAME_WIDTH / 2, 100, 'Swim.  Fight.  Fertilize.', {
       fontSize: '18px',
       fontFamily: 'Bungee',
       color: '#ff88aa',
     }).setOrigin(0.5);
 
-    // --- Character selection area ---
-    const charY = 240;
-    this.charCenterX = GAME_WIDTH / 2;
+    // --- Build the character card ---
+    this.buildCard();
 
-    // Left arrow
-    this.leftArrow = this.add.text(GAME_WIDTH / 2 - 80, charY, '\u25C0', {
-      fontSize: '32px',
+    // Left / right arrows (outside the card so they don't slide)
+    this.leftArrow = this.add.text(20, 380, '\u25C0', {
+      fontSize: '36px',
       color: '#ffffff',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     this.leftArrow.on('pointerdown', () => this.cycleCharacter(-1));
 
-    // Right arrow
-    this.rightArrow = this.add.text(GAME_WIDTH / 2 + 80, charY, '\u25B6', {
-      fontSize: '32px',
+    this.rightArrow = this.add.text(GAME_WIDTH - 20, 380, '\u25B6', {
+      fontSize: '36px',
       color: '#ffffff',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     this.rightArrow.on('pointerdown', () => this.cycleCharacter(1));
 
-    // Character sprite (will be updated)
-    this.charSprite = this.add.sprite(GAME_WIDTH / 2, charY, 'player_happy').setScale(2.5);
-
-    // Float the sprite
-    this.tweens.add({
-      targets: this.charSprite,
-      y: charY + 15,
-      duration: 1500,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-
-    // Character name
-    this.charName = this.add.text(GAME_WIDTH / 2, charY + 45, '', {
-      fontSize: '40px',
-      fontFamily: 'Bungee',
-      color: '#ffff88',
-      stroke: '#000000',
-      strokeThickness: 4,
-      shadow: {
-        offsetX: -10,
-        offsetY: -10,
-        color: '#000000',
-        blur: 0,
-        fill: true,
-      },
-    }).setOrigin(0.5).setScale(1.1);
-
-
-
-    // Special ability name
-    this.charSpecial = this.add.text(GAME_WIDTH / 2, charY + 90, '', {
-      fontSize: '16px',
-      fontFamily: 'monospace',
-      color: '#88ffaa',
-    }).setOrigin(0.5);
-
-    // Description
-    this.charDesc = this.add.text(GAME_WIDTH / 2, charY + 110, '', {
-      fontSize: '14px',
-      fontFamily: 'monospace',
-      color: '#ffffff',
-    }).setOrigin(0.5);
-
-    // Quote
-    this.charQuote = this.add.text(GAME_WIDTH / 2, charY + 290, '', {
-      fontSize: '18px',
-      fontFamily: 'monospace',
-      fontStyle: 'italic',
-      color: '#dff307',
-    }).setOrigin(0.5);
-
-    // Quote Attribution
-    this.charQuoteAttribution = this.add.text(115, charY + 265, 'Sir Swimsworth says:', {
-      fontSize: '16px',
-      fontFamily: 'monospace',
-      fontStyle: 'Bold',
-      color: '#ffffff',
-    }).setOrigin(0.5);
-
-    // Stat bars
-    const statsY = charY + 140;
-    const statLabels = ['Speed', 'Acceleration', 'Health', 'Fire Power', 'Special'];
-    const statKeys = ['speed', 'accel', 'health', 'firepower', 'special'];
-    this.statBarGraphics = this.add.graphics();
-    this.statLabels = statLabels;
-    this.statKeys = statKeys;
-    this.statsY = statsY;
-
-    // Draw stat labels
-    statLabels.forEach((label, i) => {
-      this.add.text(GAME_WIDTH / 3 - 30, statsY + i * 22, label, {
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        color: '#eeeeee',
-      }).setOrigin(0, 0.5);
-    });
-
-    // // "Select" hint
-    // this.add.text(GAME_WIDTH / 2, statsY + 5 * 22 + 10, '\u25C0 \u25B6  to select character', {
-    //   fontSize: '12px',
-    //   fontFamily: 'monospace',
-    //   color: '#666666',
-    // }).setOrigin(0.5);
-
     // Instructions
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 120, 'Arrow Keys / WASD to move', {
-      fontSize: '14px',
-      fontFamily: 'monospace',
-      color: '#aaaaaa',
-    }).setOrigin(0.5);
-
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 95, 'SPACE to shoot', {
-      fontSize: '14px',
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 100, 'Arrow Keys / WASD to move  |  SPACE to shoot', {
+      fontSize: '12px',
       fontFamily: 'monospace',
       color: '#aaaaaa',
     }).setOrigin(0.5);
 
     // How to play
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 65, 'Press H for How to Play', {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 75, 'Press H for How to Play', {
       fontSize: '13px',
       fontFamily: 'monospace',
       color: '#888888',
     }).setOrigin(0.5);
 
     // Start prompt
-    this.startText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 35, 'Press ENTER to start', {
+    this.startText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 45, 'Press ENTER to start', {
       fontSize: '16px',
       fontFamily: 'Bungee',
       color: '#ffff88',
     }).setOrigin(0.5);
 
-    // Blink start text
     this.tweens.add({
       targets: this.startText,
       alpha: 0.3,
@@ -180,9 +86,8 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-A', this.prevChar, this);
     this.input.keyboard.on('keydown-D', this.nextChar, this);
 
-    // Touch: tap center to start (but not on arrows)
+    // Touch: tap bottom to start
     this.input.on('pointerdown', (pointer) => {
-      // Ignore if near arrows
       const cx = GAME_WIDTH / 2;
       if (pointer.x < cx - 60 || pointer.x > cx + 60) return;
       if (pointer.y < GAME_HEIGHT - 150) return;
@@ -192,12 +97,12 @@ export class TitleScene extends Phaser.Scene {
     // Swipe detection for mobile character cycling
     this.swipeStartX = null;
     this.input.on('pointerdown', (pointer) => {
-      if (pointer.y >= 170 && pointer.y <= 500) {
+      if (pointer.y >= 130 && pointer.y <= 620) {
         this.swipeStartX = pointer.x;
       }
     });
     this.input.on('pointerup', (pointer) => {
-      if (this.swipeStartX !== null && pointer.y >= 170 && pointer.y <= 500) {
+      if (this.swipeStartX !== null && pointer.y >= 130 && pointer.y <= 620) {
         const dx = pointer.x - this.swipeStartX;
         if (Math.abs(dx) > 40) {
           this.cycleCharacter(dx < 0 ? 1 : -1);
@@ -220,7 +125,144 @@ export class TitleScene extends Phaser.Scene {
     });
 
     // Show initial character
-    this.updateCharacterDisplay();
+    this.updateCard();
+  }
+
+  buildCard() {
+    // Card dimensions
+    const cardW = 340;
+    const cardH = 480;
+
+    // Container positioned at center — all children use local coords relative to (0,0) = card center
+    this.card = this.add.container(this.charCenterX, 400);
+
+    // Card background
+    this.cardBg = this.add.graphics();
+    this.card.add(this.cardBg);
+
+    // Card border (drawn per-character in updateCard)
+    this.cardBorder = this.add.graphics();
+    this.card.add(this.cardBorder);
+
+    // Inner highlight line at top of card
+    this.cardHighlight = this.add.graphics();
+    this.card.add(this.cardHighlight);
+
+    // Character name (top of card)
+    this.charName = this.add.text(0, -cardH / 2 + 24, '', {
+      fontSize: '32px',
+      fontFamily: 'Bungee',
+      color: '#ffff88',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5);
+    this.card.add(this.charName);
+
+    // Character sprite
+    this.charSprite = this.add.sprite(0, -cardH / 2 + 110, 'player_happy').setScale(3);
+    this.card.add(this.charSprite);
+
+    // Float the sprite (local y within container)
+    this.tweens.add({
+      targets: this.charSprite,
+      y: -cardH / 2 + 120,
+      duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Divider line (drawn in updateCard)
+
+    // Special ability
+    this.charSpecial = this.add.text(0, -cardH / 2 + 175, '', {
+      fontSize: '15px',
+      fontFamily: 'Bungee',
+      color: '#88ffaa',
+    }).setOrigin(0.5);
+    this.card.add(this.charSpecial);
+
+    // Description
+    this.charDesc = this.add.text(0, -cardH / 2 + 200, '', {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: '#cccccc',
+      wordWrap: { width: cardW - 40 },
+      align: 'center',
+    }).setOrigin(0.5);
+    this.card.add(this.charDesc);
+
+    // Stat bars area
+    const statsLocalY = -cardH / 2 + 235;
+    this.statsLocalY = statsLocalY;
+    const statLabels = ['Speed', 'Acceleration', 'Health', 'Fire Power', 'Special'];
+    const statKeys = ['speed', 'accel', 'health', 'firepower', 'special'];
+    this.statKeys = statKeys;
+
+    statLabels.forEach((label, i) => {
+      const t = this.add.text(-cardW / 2 + 25, statsLocalY + i * 24, label, {
+        fontSize: '11px',
+        fontFamily: 'monospace',
+        color: '#bbbbbb',
+      }).setOrigin(0, 0.5);
+      this.card.add(t);
+    });
+
+    this.statBarGraphics = this.add.graphics();
+    this.card.add(this.statBarGraphics);
+
+    // Quote attribution
+    this.charQuoteAttribution = this.add.text(-cardW / 2 + 25, statsLocalY + 5 * 24 + 15, 'Sir Swimsworth says:', {
+      fontSize: '11px',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      color: '#ffffff',
+    }).setOrigin(0, 0.5);
+    this.card.add(this.charQuoteAttribution);
+
+    // Quote
+    this.charQuote = this.add.text(0, statsLocalY + 5 * 24 + 42, '', {
+      fontSize: '13px',
+      fontFamily: 'monospace',
+      fontStyle: 'italic',
+      color: '#dff307',
+      wordWrap: { width: cardW - 40 },
+      align: 'center',
+    }).setOrigin(0.5);
+    this.card.add(this.charQuote);
+
+    this.cardW = cardW;
+    this.cardH = cardH;
+  }
+
+  drawCardBackground(ch) {
+    const w = this.cardW;
+    const h = this.cardH;
+    const ribbonColor = ch.colors.ribbon;
+    const ribbonCSS = `#${ribbonColor.toString(16).padStart(6, '0')}`;
+
+    // Card background — dark with slight transparency
+    this.cardBg.clear();
+    this.cardBg.fillStyle(0x0a0a1e, 0.85);
+    this.cardBg.fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+
+    // Card border in character color
+    this.cardBorder.clear();
+    this.cardBorder.lineStyle(2, ribbonColor, 0.8);
+    this.cardBorder.strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
+
+    // Top inner highlight
+    this.cardHighlight.clear();
+    this.cardHighlight.lineStyle(1, 0xffffff, 0.15);
+    this.cardHighlight.strokeRoundedRect(-w / 2 + 2, -h / 2 + 2, w - 4, h - 4, 10);
+
+    // Divider line under sprite
+    this.cardBorder.lineStyle(1, ribbonColor, 0.4);
+    this.cardBorder.lineBetween(-w / 2 + 20, -h / 2 + 160, w / 2 - 20, -h / 2 + 160);
+
+    // Update name styling
+    this.charName.setColor(ribbonCSS);
+    this.charName.setShadow(0, 0, ribbonCSS, 8, false, true);
   }
 
   prevChar() {
@@ -233,65 +275,53 @@ export class TitleScene extends Phaser.Scene {
 
   cycleCharacter(dir) {
     this.selectedIndex = (this.selectedIndex + dir + CHARACTER_IDS.length) % CHARACTER_IDS.length;
-    this.updateCharacterDisplay(dir);
+    this.updateCard(dir);
   }
 
-  updateCharacterDisplay(dir = 0) {
+  updateCard(dir = 0) {
     const id = CHARACTER_IDS[this.selectedIndex];
     const ch = CHARACTERS[id];
 
-    // Update sprite texture and animation
+    // Update sprite
     this.charSprite.setTexture(`player_${id}`);
     this.charSprite.play(`playerSwim_${id}`);
 
-    // Slide sprite in from the direction of the arrow pressed
+    // Update text
+    this.charName.setText(ch.name);
+    this.charSpecial.setText(ch.special);
+    this.charDesc.setText(ch.description);
+    this.charQuote.setText(ch.quote || '');
+
+    // Draw card visuals in character color
+    this.drawCardBackground(ch);
+
+    // Draw stat bars
+    this.drawStatBars(ch);
+
+    // Slide the whole card from the arrow direction
     if (dir !== 0) {
-      if (this.charSlideTween) this.charSlideTween.stop();
+      if (this.cardSlideTween) this.cardSlideTween.stop();
       const slideOffset = 300;
-      this.charSprite.x = this.charCenterX - dir * slideOffset;
-      this.charSprite.setAlpha(0.3);
-      this.charSlideTween = this.tweens.add({
-        targets: this.charSprite,
+      this.card.x = this.charCenterX - dir * slideOffset;
+      this.card.setAlpha(0.2);
+      this.cardSlideTween = this.tweens.add({
+        targets: this.card,
         x: this.charCenterX,
         alpha: 1,
-        duration: 2000,
+        duration: 400,
         ease: 'Back.easeOut',
       });
       if (this.cache.audio.exists('sfxSwoosh')) {
         this.sound.play('sfxSwoosh', { volume: 0.4 });
       }
     }
-
-    // Update text
-    const ribbonCSS = `#${ch.colors.ribbon.toString(16).padStart(6, '0')}`;
-    this.charName.setText(ch.name);
-    this.charName.setColor(ribbonCSS);
-    this.charName.setShadow(0, -1, '#ffffff', 0, true, false); // top-edge highlight
-    this.charName.setShadow(0, 0, ribbonCSS, 6, false, true);  // color glow (stroke shadow)
-    this.charSpecial.setText(`${ch.special}`);
-    this.charDesc.setText(ch.description);
-    this.charQuote.setText(ch.quote);
-
-    // Bounce animation on character change
-    if (this.charNameBounce) this.charNameBounce.stop();
-    this.charName.setScale(0.9);
-    this.charNameBounce = this.tweens.add({
-      targets: this.charName,
-      scaleX: 1.1,
-      scaleY: 1.1,
-      duration: 200,
-      ease: 'Back.easeOut',
-    });
-
-    // Update stat bars
-    this.drawStatBars(ch);
   }
 
   drawStatBars(ch) {
     const g = this.statBarGraphics;
     g.clear();
 
-    const barX = GAME_WIDTH / 2;
+    const barX = 20;
     const barW = 18;
     const barH = 14;
     const gap = 4;
@@ -299,7 +329,7 @@ export class TitleScene extends Phaser.Scene {
 
     this.statKeys.forEach((key, i) => {
       const val = ch.stats[key];
-      const y = this.statsY + i * 22 - barH / 2;
+      const y = this.statsLocalY + i * 24 - barH / 2;
 
       for (let p = 0; p < 5; p++) {
         if (p < val) {
