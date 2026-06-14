@@ -7,13 +7,18 @@ import {
   GAME_HEIGHT,
   POWERUP_TYPES,
   DEBRIS_CLOUD_TYPES,
+  CHARACTERS,
 } from '../config.js';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y) {
-    super(scene, x, y, 'player');
+  constructor(scene, x, y, characterId = 'happy') {
+    const ch = CHARACTERS[characterId] || CHARACTERS.happy;
+    super(scene, x, y, `player_${characterId}`);
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    this.characterId = characterId;
+    this.characterDef = ch;
 
     this.setCollideWorldBounds(true);
     this.body.setSize(16, 22);
@@ -22,8 +27,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.alive = true;
     this.invulnerable = false;
     this.lastFired = 0;
-    this.speed = PLAYER_SPEED;
-    this.fireRate = PLAYER_FIRE_RATE;
+    this.speed = ch.speed;
+    this.fireRate = ch.fireRate;
+    this.bulletSpeed = ch.bulletSpeed;
 
     // Active powerups
     this.powerups = {
@@ -37,6 +43,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Zone effects (set by GameScene overlap checks each frame)
     this.activeZone = null; // null, 'SLOW', or 'TURBULENT'
 
+    // Special ability state
+    this.specialActive = false;
+    this.specialCooldown = false;
+    this.lastSpecialTime = 0;
+
+    // Tank: wall breaker state
+    if (characterId === 'tank') {
+      this.ramActive = false;
+      this.ramCooldown = false;
+    }
+
     // Input
     this.cursors = scene.input.keyboard.createCursorKeys();
     this.wasd = {
@@ -46,18 +63,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       right: scene.input.keyboard.addKey('D'),
     };
     this.fireKey = scene.input.keyboard.addKey('SPACE');
+    this.specialKey = scene.input.keyboard.addKey('SHIFT');
 
     // Touch controls (set externally by scene)
     this.touchControls = null;
 
     // Start swim animation
-    this.play('playerSwim');
+    this.play(`playerSwim_${characterId}`);
   }
 
   handleInput(time, bulletGroup) {
     if (!this.alive) return;
 
     let speed = this.powerups.speedBoost ? this.speed * 1.6 : this.speed;
+
+    // Zip Hyper Swim active — extreme speed
+    if (this.characterId === 'zip' && this.specialActive) {
+      speed = this.speed * this.characterDef.specialConfig.speedMult;
+    }
 
     // Apply zone movement modifier (speed boost overrides slow zone)
     if (this.activeZone) {
@@ -121,21 +144,64 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.fire(bulletGroup);
       this.lastFired = time;
     }
+
+    // Special ability activation (SHIFT key)
+    if (Phaser.Input.Keyboard.JustDown(this.specialKey)) {
+      this.activateSpecial(time);
+    }
+  }
+
+  activateSpecial(time) {
+    if (this.specialCooldown || this.specialActive) return;
+
+    const cfg = this.characterDef.specialConfig;
+
+    if (this.characterId === 'zip') {
+      // Hyper Swim — extreme speed burst
+      this.specialActive = true;
+      this.setTint(0x44ffff);
+      this.scene.events.emit('showMessage', 'Hyper Swim!');
+      this.scene.time.delayedCall(cfg.duration, () => {
+        this.specialActive = false;
+        this.clearTint();
+        this.specialCooldown = true;
+        this.scene.time.delayedCall(cfg.cooldown, () => {
+          this.specialCooldown = false;
+        });
+      });
+    } else if (this.characterId === 'tank') {
+      // Wall Breaker — ram mode
+      this.ramActive = true;
+      this.invulnerable = true;
+      this.setTint(0xff4444);
+      this.scene.events.emit('showMessage', 'Wall Breaker!');
+      this.scene.time.delayedCall(cfg.ramDuration, () => {
+        this.ramActive = false;
+        this.invulnerable = false;
+        this.clearTint();
+        this.specialCooldown = true;
+        this.scene.time.delayedCall(cfg.ramCooldown, () => {
+          this.specialCooldown = false;
+        });
+      });
+    }
+    // Brainiac and Lucky are passive — no activation needed
+    // Happy has no special
   }
 
   fire(bulletGroup) {
     if (this.powerups.tripleShot) {
       // Center bullet
-      this.spawnBullet(bulletGroup, 0, -PLAYER_BULLET_SPEED);
+      this.spawnBullet(bulletGroup, 0, -this.bulletSpeed);
       // Left angled
-      this.spawnBullet(bulletGroup, -PLAYER_BULLET_SPEED * 0.3, -PLAYER_BULLET_SPEED * 0.9);
+      this.spawnBullet(bulletGroup, -this.bulletSpeed * 0.3, -this.bulletSpeed * 0.9);
       // Right angled
-      this.spawnBullet(bulletGroup, PLAYER_BULLET_SPEED * 0.3, -PLAYER_BULLET_SPEED * 0.9);
+      this.spawnBullet(bulletGroup, this.bulletSpeed * 0.3, -this.bulletSpeed * 0.9);
       if (this.scene.cache.audio.exists('sfxTripleShoot')) {
         this.scene.sound.play('sfxTripleShoot', { volume: 0.5 });
       }
     } else {
-      this.spawnBullet(bulletGroup, 0, -PLAYER_BULLET_SPEED);
+      this.spawnBullet(bulletGroup, 0, -this.bulletSpeed);
       if (this.scene.cache.audio.exists('sfxShoot')) {
         this.scene.sound.play('sfxShoot', { volume: 0.5 });
       }
@@ -195,12 +261,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Switch to shield animation
     if (key === 'shield') {
-      this.play('playerShieldSwim');
+      this.play(`playerShieldSwim_${this.characterId}`);
       this.body.setSize(16, 22);
       this.body.setOffset(12, 4);
     }
 
-    this.powerupTimers[key] = this.scene.time.delayedCall(config.duration, () => {
+    // Brainiac: powerups last 50% longer
+    let duration = config.duration;
+    if (this.characterId === 'brainiac') {
+      duration *= this.characterDef.specialConfig.durationMult;
+    }
+
+    this.powerupTimers[key] = this.scene.time.delayedCall(duration, () => {
       this.clearPowerup(key);
     });
   }
@@ -212,7 +284,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       delete this.powerupTimers[key];
     }
     if (key === 'shield') {
-      this.play('playerSwim');
+      this.play(`playerSwim_${this.characterId}`);
       this.body.setSize(16, 22);
       this.body.setOffset(8, 0);
     }
@@ -224,6 +296,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false);
     this.body.enable = false;
 
+    // Clear special state
+    this.specialActive = false;
+    this.specialCooldown = false;
+    if (this.characterId === 'tank') this.ramActive = false;
+    this.clearTint();
+
     // Clear all powerups
     Object.keys(this.powerups).forEach((key) => this.clearPowerup(key));
   }
@@ -232,7 +310,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.enableBody(true, x, y, true, true);
     this.alive = true;
     this.activeZone = null;
-    this.play('playerSwim');
+    this.play(`playerSwim_${this.characterId}`);
     this.setInvulnerable();
   }
 

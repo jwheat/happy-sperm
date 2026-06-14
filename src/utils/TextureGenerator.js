@@ -30,6 +30,8 @@ function drawSpermHead(g, cx, cy, headColor, nucleusColor, headW, headH, nucW, n
   g.fillEllipse(cx, cy - 2, nucW, nucH);
 }
 
+import { CHARACTERS, CHARACTER_IDS } from '../config.js';
+
 export function generateTextures(scene) {
   const g = scene.make.graphics({ add: false });
 
@@ -37,21 +39,33 @@ export function generateTextures(scene) {
   // STATIC TEXTURES (used by instructions screen, etc.)
   // ===================================================
 
-  // --- Player sperm (static fallback) ---
+  // --- Per-character player sperm textures ---
+  CHARACTER_IDS.forEach((id) => {
+    const ch = CHARACTERS[id];
+    const { head, nucleus, tail } = ch.colors;
+
+    // Static fallback
+    g.clear();
+    drawSpermHead(g, 16, 12, head, nucleus, 18, 22, 10, 12);
+    drawSpermTail(g, 16, 23, 0, tail, 0.9, 8, 4, 6);
+    g.generateTexture(`player_${id}`, 32, 56);
+
+    // Shield static fallback
+    g.clear();
+    g.fillStyle(0x44aaff, 0.25);
+    g.fillCircle(20, 32, 20);
+    g.lineStyle(2, 0x44aaff, 0.6);
+    g.strokeCircle(20, 32, 20);
+    drawSpermHead(g, 20, 26, head, nucleus, 18, 22, 10, 12);
+    drawSpermTail(g, 20, 37, 0, tail, 0.9, 6, 4, 5);
+    g.generateTexture(`playerShield_${id}`, 40, 64);
+  });
+
+  // Keep default 'player' texture for backward compat (uses happy colors)
   g.clear();
   drawSpermHead(g, 16, 12, 0xffffff, 0xccddff, 18, 22, 10, 12);
   drawSpermTail(g, 16, 23, 0, 0xccccff, 0.9, 8, 4, 6);
   g.generateTexture('player', 32, 56);
-
-  // --- Player with shield (static fallback) ---
-  g.clear();
-  g.fillStyle(0x44aaff, 0.25);
-  g.fillCircle(20, 32, 20);
-  g.lineStyle(2, 0x44aaff, 0.6);
-  g.strokeCircle(20, 32, 20);
-  drawSpermHead(g, 20, 26, 0xffffff, 0xccddff, 18, 22, 10, 12);
-  drawSpermTail(g, 20, 37, 0, 0xccccff, 0.9, 6, 4, 5);
-  g.generateTexture('playerShield', 40, 64);
 
   // --- Player bullet ---
   g.clear();
@@ -312,28 +326,31 @@ export function generateTextures(scene) {
   // ANIMATION FRAME TEXTURES
   // ===================================================
 
-  // --- Player sperm swim frames ---
-  for (let f = 0; f < ANIM_FRAMES; f++) {
-    const phase = (f / ANIM_FRAMES) * Math.PI * 2;
-    g.clear();
-    drawSpermHead(g, 16, 12, 0xffffff, 0xccddff, 18, 22, 10, 12);
-    drawSpermTail(g, 16, 23, phase, 0xccccff, 0.9, 8, 4, 6);
-    g.generateTexture(`player_${f}`, 32, 56);
-  }
+  // --- Per-character swim frames ---
+  CHARACTER_IDS.forEach((id) => {
+    const ch = CHARACTERS[id];
+    const { head, nucleus, tail } = ch.colors;
 
-  // --- Player shield swim frames ---
-  for (let f = 0; f < ANIM_FRAMES; f++) {
-    const phase = (f / ANIM_FRAMES) * Math.PI * 2;
-    g.clear();
-    // Shield bubble
-    g.fillStyle(0x44aaff, 0.25);
-    g.fillCircle(20, 32, 20);
-    g.lineStyle(2, 0x44aaff, 0.6);
-    g.strokeCircle(20, 32, 20);
-    drawSpermHead(g, 20, 26, 0xffffff, 0xccddff, 18, 22, 10, 12);
-    drawSpermTail(g, 20, 37, phase, 0xccccff, 0.9, 6, 4, 5);
-    g.generateTexture(`playerShield_${f}`, 40, 64);
-  }
+    for (let f = 0; f < ANIM_FRAMES; f++) {
+      const phase = (f / ANIM_FRAMES) * Math.PI * 2;
+      g.clear();
+      drawSpermHead(g, 16, 12, head, nucleus, 18, 22, 10, 12);
+      drawSpermTail(g, 16, 23, phase, tail, 0.9, 8, 4, 6);
+      g.generateTexture(`player_${id}_${f}`, 32, 56);
+    }
+
+    for (let f = 0; f < ANIM_FRAMES; f++) {
+      const phase = (f / ANIM_FRAMES) * Math.PI * 2;
+      g.clear();
+      g.fillStyle(0x44aaff, 0.25);
+      g.fillCircle(20, 32, 20);
+      g.lineStyle(2, 0x44aaff, 0.6);
+      g.strokeCircle(20, 32, 20);
+      drawSpermHead(g, 20, 26, head, nucleus, 18, 22, 10, 12);
+      drawSpermTail(g, 20, 37, phase, tail, 0.9, 6, 4, 5);
+      g.generateTexture(`playerShield_${id}_${f}`, 40, 64);
+    }
+  });
 
   // --- Rival sperm swim frames ---
   for (let f = 0; f < ANIM_FRAMES; f++) {
@@ -423,20 +440,21 @@ export function generateTextures(scene) {
   // CREATE ANIMATIONS
   // ===================================================
 
-  // Player swim
-  scene.anims.create({
-    key: 'playerSwim',
-    frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `player_${i}` })),
-    frameRate: 10,
-    repeat: -1,
-  });
+  // Per-character swim & shield animations
+  CHARACTER_IDS.forEach((id) => {
+    scene.anims.create({
+      key: `playerSwim_${id}`,
+      frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `player_${id}_${i}` })),
+      frameRate: 10,
+      repeat: -1,
+    });
 
-  // Player shield swim
-  scene.anims.create({
-    key: 'playerShieldSwim',
-    frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `playerShield_${i}` })),
-    frameRate: 10,
-    repeat: -1,
+    scene.anims.create({
+      key: `playerShieldSwim_${id}`,
+      frames: Array.from({ length: ANIM_FRAMES }, (_, i) => ({ key: `playerShield_${id}_${i}` })),
+      frameRate: 10,
+      repeat: -1,
+    });
   });
 
   // Rival sperm swim

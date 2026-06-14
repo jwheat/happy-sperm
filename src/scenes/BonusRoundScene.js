@@ -33,6 +33,7 @@ export class BonusRoundScene extends Phaser.Scene {
     this.score = data.score;
     this.lives = data.lives;
     this.totalTime = data.totalTime || 0;
+    this.characterId = data.character || 'happy';
     this.bonusOver = false;
     this.bonusScore = 0;
     this.wavesCleared = 0;
@@ -58,7 +59,7 @@ export class BonusRoundScene extends Phaser.Scene {
     }
 
     // Player
-    this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80);
+    this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80, this.characterId);
 
     // Touch controls
     this.touchControls = new TouchControls(this);
@@ -220,6 +221,7 @@ export class BonusRoundScene extends Phaser.Scene {
     turret.hp = BONUS_TURRET_HP;
     turret.lastFired = 0;
     turret.alive = true;
+    turret.disabled = false;
     turret.offsetY = y - wave.y;
 
     // Bullet vs turret collision
@@ -280,8 +282,8 @@ export class BonusRoundScene extends Phaser.Scene {
         turret.setY(wave.y + turret.offsetY);
         if (turret.body) turret.body.updateFromGameObject();
 
-        // Fire at player when on screen
-        if (turret.alive && turret.y > 30 && turret.y < GAME_HEIGHT - 30) {
+        // Fire at player when on screen (disabled turrets don't shoot)
+        if (turret.alive && !turret.disabled && turret.y > 30 && turret.y < GAME_HEIGHT - 30) {
           if (time > turret.lastFired + BONUS_TURRET_FIRE_RATE) {
             this.fireTurret(turret, time);
             turret.lastFired = time;
@@ -371,12 +373,13 @@ export class BonusRoundScene extends Phaser.Scene {
     });
 
     if (turret.hp <= 0) {
+      // Second hit: destroyed (500 points)
       turret.alive = false;
       this.explosionEmitter.emitParticleAt(turret.x, turret.y);
       turret.setTexture('turretDead');
       if (turret.body) turret.body.enable = false;
 
-      const points = BONUS_TURRET_SCORE * BONUS_SCORE_MULTIPLIER;
+      const points = 500;
       this.bonusScore += points;
       this.score += points;
 
@@ -384,19 +387,37 @@ export class BonusRoundScene extends Phaser.Scene {
         this.sound.play('sfxExplosion', { volume: 0.4 });
       }
 
-      const pointText = this.add.text(turret.x, turret.y, `+${points}`, {
-        fontSize: '14px',
-        fontFamily: 'Audiowide',
-        color: '#ffdd44',
-      }).setOrigin(0.5).setDepth(10);
-      this.tweens.add({
-        targets: pointText,
-        y: turret.y - 40,
-        alpha: 0,
-        duration: 800,
-        onComplete: () => pointText.destroy(),
-      });
+      this.showPoints(turret.x, turret.y, points);
+    } else {
+      // First hit: disabled, stops shooting (100 points)
+      turret.disabled = true;
+      turret.setTint(0x888888);
+
+      const points = 100;
+      this.bonusScore += points;
+      this.score += points;
+
+      if (this.cache.audio.exists('sfxHit')) {
+        this.sound.play('sfxHit', { volume: 0.3 });
+      }
+
+      this.showPoints(turret.x, turret.y, points);
     }
+  }
+
+  showPoints(x, y, points) {
+    const pointText = this.add.text(x, y, `+${points}`, {
+      fontSize: '14px',
+      fontFamily: 'Audiowide',
+      color: '#ffdd44',
+    }).setOrigin(0.5).setDepth(10);
+    this.tweens.add({
+      targets: pointText,
+      y: y - 40,
+      alpha: 0,
+      duration: 800,
+      onComplete: () => pointText.destroy(),
+    });
   }
 
   onPlayerHit(player, bullet) {
@@ -465,6 +486,7 @@ export class BonusRoundScene extends Phaser.Scene {
         score: this.score,
         lives: this.lives,
         totalTime: this.totalTime,
+        character: this.characterId,
       });
     });
   }

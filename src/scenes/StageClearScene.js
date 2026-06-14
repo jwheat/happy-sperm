@@ -19,6 +19,7 @@ export class StageClearScene extends Phaser.Scene {
     this.totalTime = data.totalTime || 0;
     this.stageTime = data.stageTime || 0;
     this.stats = data.stats || {};
+    this.characterId = data.character || 'happy';
     this.advanced = false;
   }
 
@@ -92,7 +93,7 @@ export class StageClearScene extends Phaser.Scene {
       color: '#aaaaaa',
     }).setOrigin(0, 0.5);
     for (let i = 0; i < this.lives; i++) {
-      this.add.image(GAME_WIDTH / 2 - 10 + i * 22, livesY, 'player')
+      this.add.image(GAME_WIDTH / 2 - 10 + i * 22, livesY, `player_${this.characterId}`)
         .setScale(0.35).setOrigin(0, 0.5);
     }
 
@@ -185,6 +186,7 @@ export class StageClearScene extends Phaser.Scene {
       score: this.score,
       lives: this.lives,
       totalTime: this.totalTime,
+      character: this.characterId,
     };
 
     // Bonus round between stages (not before the final stage)

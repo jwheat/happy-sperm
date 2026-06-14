@@ -26,6 +26,7 @@ import {
   DEBRIS_SPAWN_INTERVAL,
   DEBRIS_MIN_SPAWN_INTERVAL,
   DEBRIS_SPAWN_DECREASE,
+  CHARACTERS,
 } from '../config.js';
 
 import { Player } from '../entities/Player.js';
@@ -44,6 +45,8 @@ export class GameScene extends Phaser.Scene {
     this.currentStage = data.stage || 0;
     this.score = data.score || 0;
     this.lives = data.lives ?? PLAYER_LIVES;
+    this.characterId = data.character || 'happy';
+    this.characterDef = CHARACTERS[this.characterId] || CHARACTERS.happy;
     this.stageTimer = 0;        // speed-adjusted timer (drives progress bar / stage completion)
     this.realStageTime = 0;      // real wall-clock time for current stage
     this.totalTime = data.totalTime || 0; // cumulative real time across stages
@@ -88,7 +91,7 @@ export class GameScene extends Phaser.Scene {
     this.rightWall.setVisible(false);
 
     // Player
-    this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80);
+    this.player = new Player(this, GAME_WIDTH / 2, GAME_HEIGHT - 80, this.characterId);
 
     // Touch controls (only visible on touch devices)
     this.touchControls = new TouchControls(this);
@@ -311,9 +314,12 @@ export class GameScene extends Phaser.Scene {
       this.spawnTimer = 0;
     }
 
-    // Spawn energy pickups
+    // Spawn energy pickups (Lucky gets them faster)
+    const energyInterval = this.characterId === 'lucky'
+      ? ENERGY_SPAWN_INTERVAL * this.characterDef.specialConfig.energyIntervalMult
+      : ENERGY_SPAWN_INTERVAL;
     this.energyTimer += delta;
-    if (this.energyTimer >= ENERGY_SPAWN_INTERVAL) {
+    if (this.energyTimer >= energyInterval) {
       this.spawnCollectible('energy');
       this.energyTimer = 0;
     }
@@ -450,7 +456,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnPowerupDrop(x, y) {
-    if (Math.random() > POWERUP_DROP_CHANCE) return;
+    const dropChance = this.characterId === 'lucky'
+      ? POWERUP_DROP_CHANCE * this.characterDef.specialConfig.dropMult
+      : POWERUP_DROP_CHANCE;
+    if (Math.random() > dropChance) return;
 
     const types = ['speedBoost', 'rapidFire', 'shieldPickup', 'tripleShot'];
     const type = Phaser.Utils.Array.GetRandom(types);
@@ -523,6 +532,14 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  addScore(points) {
+    if (this.characterId === 'brainiac') {
+      points = Math.floor(points * this.characterDef.specialConfig.scoreMult);
+    }
+    this.score += points;
+    this.events.emit('scoreChanged', this.score);
+  }
+
   // --- Collision handlers ---
   onBulletHitEnemy(bullet, enemy) {
     if (!bullet.active || !enemy.active) return;
@@ -538,8 +555,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Score
-      this.score += enemy.scoreValue;
-      this.events.emit('scoreChanged', this.score);
+      this.addScore(enemy.scoreValue);
       this.stageStats.enemiesKilled++;
 
       // Drop powerup
@@ -564,17 +580,19 @@ export class GameScene extends Phaser.Scene {
   onPlayerHitEnemy(player, enemy) {
     if (!player.active || !enemy.active) return;
 
-    if (player.takeDamage()) {
+    // Tank ram: destroy enemy, no damage to player, full score
+    const isRamming = this.characterId === 'tank' && player.ramActive;
+
+    if (!isRamming && player.takeDamage()) {
       this.playerHit();
     }
 
-    // Also kill the enemy on collision
+    // Kill the enemy on collision
     this.explosionEmitter.emitParticleAt(enemy.x, enemy.y);
     if (this.cache.audio.exists('sfxExplosion')) {
       this.sound.play('sfxExplosion', { volume: 0.4 });
     }
-    this.score += Math.floor(enemy.scoreValue / 2);
-    this.events.emit('scoreChanged', this.score);
+    this.addScore(isRamming ? enemy.scoreValue : Math.floor(enemy.scoreValue / 2));
     enemy.setActive(false);
     enemy.setVisible(false);
     enemy.body.enable = false;
@@ -588,8 +606,7 @@ export class GameScene extends Phaser.Scene {
 
     switch (type) {
       case 'energy':
-        this.score += SCORE_ENERGY;
-        this.events.emit('scoreChanged', this.score);
+        this.addScore(SCORE_ENERGY);
         if (this.cache.audio.exists('sfxPickup')) {
           this.sound.play('sfxPickup', { volume: 0.4 });
         }
@@ -637,8 +654,7 @@ export class GameScene extends Phaser.Scene {
     if (this.gameOver) return;
     this.gameOver = true;
 
-    this.score += SCORE_STAGE_CLEAR * 5; // Big bonus for winning
-    this.events.emit('scoreChanged', this.score);
+    this.addScore(SCORE_STAGE_CLEAR * 5); // Big bonus for winning
     this.events.emit('showMessage', 'FERTILIZED!');
 
     // Victory flash
@@ -651,6 +667,7 @@ export class GameScene extends Phaser.Scene {
         score: this.score,
         stage: this.currentStage,
         totalTime: this.totalTime,
+        character: this.characterId,
       });
     });
   }
@@ -674,6 +691,7 @@ export class GameScene extends Phaser.Scene {
           score: this.score,
           stage: this.currentStage,
           totalTime: this.totalTime,
+          character: this.characterId,
         });
       });
     } else {
@@ -687,8 +705,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   completeStage() {
-    this.score += SCORE_STAGE_CLEAR;
-    this.events.emit('scoreChanged', this.score);
+    this.addScore(SCORE_STAGE_CLEAR);
     this.events.emit('showMessage', `${STAGES[this.currentStage].name} cleared!`);
     this.cameras.main.flash(500, 255, 255, 200);
 
@@ -699,6 +716,7 @@ export class GameScene extends Phaser.Scene {
       lives: this.lives,
       totalTime: this.totalTime,
       stageTime: this.realStageTime,
+      character: this.characterId,
       stats: {
         ...this.stageStats,
         stageScore: this.score - this.stageStats.stageStartScore,

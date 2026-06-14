@@ -115,6 +115,77 @@ export const DEBRIS_SPAWN_INTERVAL = 8000;   // ms between cloud spawns
 export const DEBRIS_MIN_SPAWN_INTERVAL = 5000;
 export const DEBRIS_SPAWN_DECREASE = 500;    // per stage
 
+// Characters
+export const CHARACTERS = {
+  happy: {
+    name: 'Happy',
+    description: 'Balanced — well rounded for any situation',
+    special: 'All-Rounder',
+    specialDesc: 'No weaknesses, solid in every stat',
+    stats: { speed: 3, accel: 3, health: 3, firepower: 3, special: 3 },
+    speed: PLAYER_SPEED,
+    fireRate: PLAYER_FIRE_RATE,
+    bulletSpeed: PLAYER_BULLET_SPEED,
+    lives: PLAYER_LIVES,
+    colors: { head: 0xffffff, nucleus: 0xccddff, tail: 0xccccff },
+    specialConfig: {},
+  },
+  zip: {
+    name: 'Zip',
+    description: 'Built for speed — fragile but blindingly fast',
+    special: 'Hyper Swim',
+    specialDesc: 'Press SHIFT for an extreme speed burst',
+    stats: { speed: 5, accel: 5, health: 2, firepower: 2, special: 4 },
+    speed: PLAYER_SPEED * 1.4,
+    fireRate: PLAYER_FIRE_RATE * 1.3,
+    bulletSpeed: PLAYER_BULLET_SPEED * 0.85,
+    lives: 2,
+    colors: { head: 0x44ffff, nucleus: 0x22aacc, tail: 0x44dddd },
+    specialConfig: { duration: 1000, cooldown: 8000, speedMult: 3.0 },
+  },
+  tank: {
+    name: 'Tank',
+    description: 'Slow and tough — smashes through anything',
+    special: 'Wall Breaker',
+    specialDesc: 'Smash through obstacles and enemies',
+    stats: { speed: 1, accel: 1, health: 5, firepower: 4, special: 4 },
+    speed: PLAYER_SPEED * 0.7,
+    fireRate: PLAYER_FIRE_RATE * 0.8,
+    bulletSpeed: PLAYER_BULLET_SPEED * 1.1,
+    lives: 5,
+    colors: { head: 0xff6666, nucleus: 0xcc4444, tail: 0xff8888 },
+    specialConfig: { ramDuration: 2000, ramCooldown: 10000 },
+  },
+  brainiac: {
+    name: 'Brainiac',
+    description: 'Smart swimmer — maximizes every pickup',
+    special: 'Analyze',
+    specialDesc: 'Powerups last 50% longer, +25% score bonus',
+    stats: { speed: 2, accel: 3, health: 2, firepower: 3, special: 5 },
+    speed: PLAYER_SPEED * 0.9,
+    fireRate: PLAYER_FIRE_RATE,
+    bulletSpeed: PLAYER_BULLET_SPEED,
+    lives: 2,
+    colors: { head: 0xbb66ff, nucleus: 0x8833cc, tail: 0xaa88ff },
+    specialConfig: { durationMult: 1.5, scoreMult: 1.25 },
+  },
+  lucky: {
+    name: 'Lucky',
+    description: 'Fortune favors the bold — more drops and buffs',
+    special: 'Lucky Break',
+    specialDesc: 'Double powerup drop chance & buff frequency',
+    stats: { speed: 3, accel: 3, health: 3, firepower: 2, special: 5 },
+    speed: PLAYER_SPEED,
+    fireRate: PLAYER_FIRE_RATE * 1.1,
+    bulletSpeed: PLAYER_BULLET_SPEED * 0.9,
+    lives: PLAYER_LIVES,
+    colors: { head: 0x66ff66, nucleus: 0x44aa44, tail: 0x88ff88 },
+    specialConfig: { dropMult: 2.0, energyIntervalMult: 0.6 },
+  },
+};
+
+export const CHARACTER_IDS = Object.keys(CHARACTERS);
+
 // Wall / tube boundaries
 export const TUBE_WALL_THICKNESS = 8;
 export const TUBE_MIN_WIDTH = 200;

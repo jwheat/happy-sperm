@@ -10,6 +10,7 @@ export class GameOverScene extends Phaser.Scene {
     this.finalScore = data.score || 0;
     this.finalStage = data.stage || 0;
     this.totalTime = data.totalTime || 0;
+    this.characterId = data.character || 'happy';
   }
 
   create() {

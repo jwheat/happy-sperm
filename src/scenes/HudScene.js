@@ -50,12 +50,13 @@ export class HudScene extends Phaser.Scene {
     // Score
     this.scoreText = this.add.text(10, 8, '000000', textStyle);
 
-    // Lives (sperm icons)
+    // Lives (sperm icons — use character-specific texture)
+    const charId = this.gameScene.characterId || 'happy';
     this.livesIcons = [];
     this.maxLives = 5; // max we'll ever show
     for (let i = 0; i < this.maxLives; i++) {
       const icon = this.add.image(
-        GAME_WIDTH - 12 - i * 20, 16, 'player'
+        GAME_WIDTH - 12 - i * 20, 16, `player_${charId}`
       ).setScale(0.35).setOrigin(1, 0.5);
       icon.setVisible(false);
       this.livesIcons.push(icon);
